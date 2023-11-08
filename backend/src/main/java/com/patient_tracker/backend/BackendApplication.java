@@ -60,7 +60,7 @@ public class BackendApplication {
 			System.out.println(publicKey);
 			// log.debug(publicKey);
 
-			// SpringApplication.run(BackendApplication.class, args);
+			SpringApplication.run(BackendApplication.class, args);
 		} catch (IOException e) {
 			log.error(e.toString());
 		} catch (GeneralSecurityException e) {
