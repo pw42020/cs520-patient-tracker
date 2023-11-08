@@ -6,6 +6,8 @@
 
 # encryption files
 *.pem
+*.key
+*.crt
 
 # BlueJ files
 *.ctxt
