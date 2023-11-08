@@ -23,6 +23,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.json:json:20171018'
 	implementation 'org.bouncycastle:bcprov-jdk15on:1.59'
+	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+	implementation 'com.google.code.gson:gson:2.8.2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 }

@@ -40,7 +40,7 @@ public class Security {
         }
         PemReader pemReader = new PemReader(new FileReader(file));
         PemObject pemObject = pemReader.readPemObject();
-        log.debug(pemObject.getContent());
+        // log.debug(pemObject.getContent());
 
         System.out.println("pemObject.getContent()");
         System.out.println(pemObject.getContent());
