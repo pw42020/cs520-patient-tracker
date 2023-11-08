@@ -6,8 +6,8 @@ import com.patient_tracker.backend.User;
 import com.patient_tracker.Security;
 
 import java.io.File;
-import java.security.interfaces.RSAPublicKey;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
@@ -50,18 +50,22 @@ public class BackendApplication {
 	public static void main(String[] args) {
 
 		try {
-			RSAPrivateKey privateKey = Security
-					.readPKCS8PrivateKey(new File(System.getProperty("user.dir") + "/../private.pem"));
-			RSAPublicKey publicKey = Security
-					.readX509PublicKey(new File(System.getProperty("user.dir") + "/../public.pem"));
+			PrivateKey privateKey = Security
+					.readPKCS8PrivateKey(new File(System.getProperty("user.dir") + "/pkcs8.key"));
+			PublicKey publicKey = Security
+					.readX509PublicKey(new File(System.getProperty("user.dir") +
+							"/publickey.crt"));
 
-			log.debug(privateKey);
-			log.debug(publicKey);
+			System.out.println(privateKey);
+			System.out.println(publicKey);
+			// log.debug(publicKey);
 
-			SpringApplication.run(BackendApplication.class, args);
+			// SpringApplication.run(BackendApplication.class, args);
 		} catch (IOException e) {
 			log.error(e.toString());
 		} catch (GeneralSecurityException e) {
+			log.error(e.toString());
+		} catch (Exception e) {
 			log.error(e.toString());
 		}
 	}

@@ -41,6 +41,7 @@ public class Security {
         PemReader pemReader = new PemReader(new FileReader(file));
         PemObject pemObject = pemReader.readPemObject();
         log.debug(pemObject.getContent());
+
         System.out.println("pemObject.getContent()");
         System.out.println(pemObject.getContent());
         return pemObject.getContent();
@@ -71,6 +72,7 @@ public class Security {
      */
     public static RSAPublicKey readX509PublicKey(File file) throws IOException, GeneralSecurityException {
         byte[] content = parsePEMFile(file);
+
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(content);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return (RSAPublicKey) kf.generatePublic(keySpec);
