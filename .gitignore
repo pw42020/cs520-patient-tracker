@@ -4,6 +4,9 @@
 # Log file
 *.log
 
+# application.properties file as it has mongodb important information
+src/main/resources/application.properties
+
 # encryption files
 *.pem
 *.key

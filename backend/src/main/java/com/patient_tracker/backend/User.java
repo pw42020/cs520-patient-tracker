@@ -18,77 +18,120 @@ public class User {
     }
 
     @Id
-    public String id;
+    private String id;
 
-    public DoctorPatient doctorPatient;
-    public String name;
-    public String DOB;
-    public String password;
-    public String SSN;
-    public List<String> formIds;
-    public String gender;
-    public String address1;
-    public String address2;
-    public String city;
-    public String state;
-    public String zip;
-    public String imageUrl;
-    public List<String> appointmentIds;
-    public List<String> availableSlots;
+    private DoctorPatient doctorPatient;
+    private String name;
+    private String DOB;
+    private String password;
+    private String SSN;
+    private List<String> formIds;
+    private String gender;
+    private String address1;
+    private String address2;
+    private String city;
+    private String state;
+    private String zip;
+    private String imageUrl;
+    private List<String> appointmentIds;
+    private List<String> availableSlots;
 
-    // public User(Gson userJson) {
-
-    //     if ((int)userJson.get("doctorPatient") == 0) {
-    //         this.doctorPatient = DoctorPatient.DOCTOR;
-    //     } else {
-    //         this.doctorPatient = DoctorPatient.PATIENT;
-    //     }
-    //     this.name = (String) userJson.get("name");
-    //     this.DOB = (String) userJson.get("DOB");
-    //     this.password = (String) userJson.get("password");
-    //     this.SSN = (String) userJson.get("SSN");
-    //     this.gender = (String) userJson.get("gender");
-    //     this.address1 = (String) userJson.get("address1");
-    //     this.address2 = (String) userJson.get("address2");
-    //     this.city = (String) userJson.get("city");
-    //     this.zip = (String) userJson.get("zip");
-    //     this.imageUrl = (String) userJson.get("imageUrl");
-    //     this.appointmentIds = (List<String>) userJson.get("appointmentIds");
-    //     this.availableSlots = (List<String>) userJson.get("availableSlots");
-    //     this.formIds = (List<String>) userJson.get("formIds");
-
-    //     this.publicKey = (String) userJson.get("publicKey");
-    //     this.privateKey = (String) userJson.get("privateKey");
-    // }
-
-    /**
-     * convert user to json object
-     * 
-     * @return JSONObject
-     */
-    // public JsonObject toJson() {
-    //     // add all parameters into a new json object
-    //     JsonObject userJson = new JsonObject();
-    //     userJson.put("doctorPatient", doctorPatient);
-    //     userJson.put("name", name);
-    //     userJson.put("DOB", DOB);
-    //     userJson.put("password", password);
-    //     userJson.put("SSN", SSN);
-    //     userJson.put("gender", gender);
-
-    //     userJson.put("address1", address1);
-    //     userJson.put("address2", address2);
-    //     userJson.put("city", city);
-    //     userJson.put("zip", zip);
-    //     userJson.put("imageUrl", imageUrl);
-    //     userJson.put("appointmentIds", appointmentIds);
-    //     userJson.put("availableSlots", availableSlots);
-    //     userJson.put("formIds", formIds);
-
-    //     userJson.put("publicKey", publicKey);
-    //     userJson.put("privateKey", privateKey);
-
-    //     return userJson;
-    // }
+    // make getters and setters for every object
+    public String getId() {
+        return id;
+    }
+    public DoctorPatient getDoctorPatient() {
+        return doctorPatient;
+    }
+    public String getName() {
+        return name;
+    }
+    public String getDOB() {
+        return DOB;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public String getSSN() {
+        return SSN;
+    }
+    public List<String> getFormIds() {
+        return formIds;
+    }
+    public String getGender() {
+        return gender;
+    }
+    public String getAddress1() {
+        return address1;
+    }
+    public String getAddress2() {
+        return address2;
+    }
+    public String getCity() {
+        return city;
+    }
+    public String getState() {
+        return state;
+    }
+    public String getZip() {
+        return zip;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public List<String> getAppointmentIds() {
+        return appointmentIds;
+    }
+    public List<String> getAvailableSlots() {
+        return availableSlots;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public void setDoctorPatient(DoctorPatient doctorPatient) {
+        this.doctorPatient = doctorPatient;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setDOB(String DOB) {
+        this.DOB = DOB;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public void setSSN(String SSN) {
+        this.SSN = SSN;
+    }
+    public void setFormIds(List<String> formIds) {
+        this.formIds = formIds;
+    }
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    public void setAddress1(String address1) {
+        this.address1 = address1;
+    }
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+    public void setCity(String city) {
+        this.city = city;
+    }
+    public void setState(String state) {
+        this.state = state;
+    }
+    public void setZip(String zip) {
+        this.zip = zip;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+    public void setAppointmentIds(List<String> appointmentIds) {
+        this.appointmentIds = appointmentIds;
+    }
+    public void setAvailableSlots(List<String> availableSlots) {
+        this.availableSlots = availableSlots;
+    }
 
 }
