@@ -2,6 +2,9 @@ package com.patient_tracker.backend;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Collections;
+
 // import Gson
 import com.google.gson.Gson;
 // import jsonobject
@@ -36,6 +39,48 @@ public class User {
     private List<String> appointmentIds;
     private List<String> availableSlots;
 
+    /**
+     * add appointment ID to user's appointmentIds field
+     * @return 0 if successful, 1 if appointmentID already in list
+     */
+    public int addAppointment(String appointmentID) {
+
+        List<String> appointmentIds = this.getAppointmentIds();
+
+        // check if appointmentID is already in appointmentIds
+        if (appointmentIds.contains(appointmentID)) {
+            return 1;
+        }
+        
+        // add appointmentID to appointmentIds
+        appointmentIds.add(appointmentID);
+
+        this.setAppointmentIds(appointmentIds);
+
+        return 0;
+    }
+
+    /**
+     * remove appointment ID from user's appointmentIds field
+     * @return 0 if successful, 1 if appointmentID not found
+     */
+    public int removeAppointment(String appointmentID) {
+
+        List<String> appointmentIds = this.getAppointmentIds();
+
+        // check if appointmentID is already in appointmentIds
+        if (!appointmentIds.contains(appointmentID)) {
+            return 1;
+        }
+        
+        // remove appointmentID from appointmentIds
+        appointmentIds.remove(appointmentID);
+
+        this.setAppointmentIds(appointmentIds);
+
+        return 0;
+    }
+
     // make getters and setters for every object
     public String getId() {
         return id;
@@ -56,7 +101,7 @@ public class User {
         return SSN;
     }
     public List<String> getFormIds() {
-        return formIds;
+        return Collections.unmodifiableList(formIds);
     }
     public String getGender() {
         return gender;
@@ -80,10 +125,10 @@ public class User {
         return imageUrl;
     }
     public List<String> getAppointmentIds() {
-        return appointmentIds;
+        return Collections.unmodifiableList(appointmentIds);
     }
     public List<String> getAvailableSlots() {
-        return availableSlots;
+        return Collections.unmodifiableList(availableSlots);
     }
     public void setId(String id) {
         this.id = id;

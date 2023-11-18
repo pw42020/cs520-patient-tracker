@@ -1,0 +1,18 @@
+{
+    "id": "anonymousPatient",
+    "doctorPatient": 1,
+    "name": "Patrick John Walsh",
+    "DOB": "2012-04-23T18:25:43.511Z",
+    "password": "password",
+    "SSN": "121231234",
+    "formIds": [],
+    "gender": "man",
+    "address1": "123 Road Avenue",
+    "address2": "",
+    "city": "New York",
+    "state": "New York",
+    "zip": "10001",
+    "imageUrl": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?cs=srgb&dl=pexels-simon-robben-614810.jpg&fm=jpg",
+    "appointmentIds": [],
+    "availableSlots": []
+}

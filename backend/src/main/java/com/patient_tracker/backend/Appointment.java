@@ -2,6 +2,8 @@ package com.patient_tracker.backend;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("appointments")
 public class Appointment {

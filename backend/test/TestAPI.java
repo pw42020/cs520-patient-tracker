@@ -1,13 +1,12 @@
-package com.patient_tracker.backend;
+// import junit
+import org.junit.Test;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.*;
-import org.springframework.boot.test.context.SpringBootTest;
+// import backendapplication.java
+import com.patient_tracker.backend.BackendApplication;
 
-@SpringBootTest
-class BackendApplicationTests {
-
-	BackendApplication bA = null;
+class TestAPI {
+    
+    BackendApplication bA = null;
     String patientID = "anonymousPatient";
     String doctorID = "anonymousDoctor";
 
@@ -35,5 +34,4 @@ class BackendApplicationTests {
         assertEqual(checkPatientID, patientID);
         assertEqual(checkDoctorID, doctorID);
     }
-
 }

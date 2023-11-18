@@ -2,6 +2,7 @@ package com.patient_tracker.backend;
 import org.json.JSONObject;
 
 import com.patient_tracker.backend.User;
+import com.patient_tracker.backend.Appointment;
 import com.patient_tracker.Security;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.io.InputStream;
 import java.io.FileNotFoundException;
 
 import com.patient_tracker.backend.UserRepository;
+import com.patient_tracker.backend.AppointmentRepository;
 
 // import Gson
 import com.google.gson.Gson;
@@ -47,14 +49,14 @@ public class BackendApplication implements CommandLineRunner{
 
 	@Autowired
 	private UserRepository userRepository;
-	
-	/**
-	 * create a user from a json file hardcoded in the backend
-	 */
-	public void createUsers() throws IOException, FileNotFoundException{
-        File file = new File(System.getProperty("user.dir") + "/default_person.json");
+
+	@Autowired
+	private AppointmentRepository appointmentRepository;
+
+	public void createUserFromFile(String file_directory) throws FileNotFoundException, IOException{
+		File file = new File(file_directory);
 		if (file.exists()) {
-			InputStream is = new FileInputStream(System.getProperty("user.dir") + "/default_person.json");
+			InputStream is = new FileInputStream(file_directory);
             String jsonTxt = IOUtils.toString(is, "UTF-8");
             System.out.println(jsonTxt);
             Gson gson = new Gson();
@@ -64,8 +66,7 @@ public class BackendApplication implements CommandLineRunner{
 		} else {
 			log.error("file not found");
 		}
-
-    }
+	}
 
 
 	/**
@@ -121,12 +122,34 @@ public class BackendApplication implements CommandLineRunner{
 
 	/**
 	 * delete a user by their ID
-	 * @param userId user ID of the user
+	 * @param userJson the full JSON of the user
+	 * 
+	 * Specificially requiring all JSON to prove that the user deleting
+	 * this user is the user themself, we cannot have users deleting
+	 * other users
 	 */
-	@GetMapping("/users/delete/{userId}")
-	public void deleteUser(@PathVariable String userId) {
-		log.debug("deleting user %s\n", userId);
+	@GetMapping("/users/delete/{userJson}")
+	public void deleteUser(@PathVariable String userJson) {
+		Gson gson = new Gson();
+		User user = gson.fromJson(userJson, User.class);
+		String userId = user.getId();
 		userRepository.deleteUserById(userId);
+	}
+
+	@PostMapping("appointments/create")
+	public void createAppointment(@RequestParam String appointmentJson) {
+		Gson gson = new Gson();
+		Appointment appointment = gson.fromJson(appointmentJson, Appointment.class);
+		appointmentRepository.save(appointment);
+
+		// add appointment to user and doctor
+		User user = userRepository.findUserById(appointment.getPatientId());
+		user.addAppointment(appointment.getId());
+		userRepository.save(user);
+
+		User doctor = userRepository.findUserById(appointment.getDoctorId());
+		doctor.addAppointment(appointment.getId());
+		userRepository.save(doctor);
 	}
 
 	// create appointment
