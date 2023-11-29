@@ -9,7 +9,7 @@ import pymongo
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
-load_dotenv()
+load_dotenv()  # loading .env (REQUIRED)
 
 
 def ping_database() -> str:

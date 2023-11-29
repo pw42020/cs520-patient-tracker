@@ -17,11 +17,16 @@ ROOT_PATH: Final[Path] = Path(__file__).parent.parent
 sys.path.append(f"{str(ROOT_PATH)}/assets")  # to add logging formatter
 from CustomFormatter import CustomFormatter
 
+
 # defining app
-app = Flask(__name__)
+def create_app():
+    return Flask(__name__)
 
 
-@app.route("/")
+app = create_app()
+
+
+@app.route("/", methods=["GET"])
 def ping_db() -> str:
     """initialization to ensure that app is running
     and database can be grabbed
@@ -38,7 +43,7 @@ def ping_db() -> str:
     return db.ping_database()
 
 
-@app.route("/users/<username>")
+@app.route("/users/<username>", methods=["GET"])
 def get_user(username: str) -> dict:
     """gets user from database
 
@@ -64,7 +69,7 @@ def get_user(username: str) -> dict:
         return f"user {username} not found", 404
 
 
-@app.route("/create_user/<user_data>")
+@app.route("/create_user/<user_data>", methods=["POST"])
 def create_user(user_data: str) -> str:
     """creates user in database
 
@@ -83,13 +88,15 @@ def create_user(user_data: str) -> str:
     Exception
         if unsuccessful"""
     users_db = db.get_database("users")
+
+    print(f"user_data: {user_data}", file=sys.stderr)
     try:
         return users.create_user(users_db, user_data)
     except Exception:
         return f"user {user_data.get('_id')} not created", 403
 
 
-@app.route("/update_user/<user_id>/<update_param>")
+@app.route("/update_user/<user_id>/<update_param>", methods=["GET", "POST"])
 def update_user(user_id: str, update_param: str) -> int:
     """updates user in database
 
@@ -118,7 +125,7 @@ def update_user(user_id: str, update_param: str) -> int:
         return f"user {user_id} not updated", 403
 
 
-@app.route("/create_appointment", methods=["GET"])
+@app.route("/create_appointment", methods=["POST"])
 def create_appointment():
     """creates appointment in database
 
@@ -161,7 +168,7 @@ def create_appointment():
         return f"appointment {appointment.get('_id')} not created", 403
 
 
-@app.route("/user_exists/<username>")
+@app.route("/user_exists/<username>", methods=["GET"])
 def user_exists(username: str) -> bool:
     """checks if user exists in database
 
@@ -185,7 +192,7 @@ def user_exists(username: str) -> bool:
         return False
 
 
-@app.route("/get_appointments/<username>")
+@app.route("/get_appointments/<username>", methods=["GET"])
 def get_appointments(username: str) -> dict:
     """Get all appointments for user
 
@@ -216,19 +223,23 @@ def get_appointments(username: str) -> dict:
 
 if __name__ == "__main__":
     # format logger
-    LOG_FORMAT = ["[%(asctime)s] [%(levelname)s]", "%(message)s "]
+    # LOG_FORMAT = ["[%(asctime)s] [%(levelname)s]", "%(message)s "]
 
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.DEBUG)
-    LOG_FILE = "patient_tracker_api.log"
-    logger = logging.FileHandler(LOG_FILE)
-    logger.setFormatter("".join(LOG_FORMAT))
-    log.addHandler(logger)
-    logger.setLevel(logging.DEBUG)
+    # log = logging.getLogger(__name__)
+    # log.setLevel(logging.DEBUG)
+    # LOG_FILE = "patient_tracker_api.log"
+    # logger = logging.FileHandler(LOG_FILE)
+    # logger.setFormatter("".join(LOG_FORMAT))
+    # log.addHandler(logger)
+    # logger.setLevel(logging.DEBUG)
 
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(CustomFormatter())
-    log.addHandler(ch)
+    # ch = logging.StreamHandler()
+    # ch.setLevel(logging.DEBUG)
+    # ch.setFormatter(CustomFormatter())
+    # log.addHandler(ch)
 
     app.run(debug=True)
+
+    # open file and read into json
+    # with open("assets/config.json", "r") as config_file:
+    #     config = json.load(config_file)

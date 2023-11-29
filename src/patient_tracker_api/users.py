@@ -133,7 +133,7 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
         return e, 404
 
 
-def create_user(db: Database, user: dict) -> str:
+def create_user(db: Database, user: dict) -> tuple[str, int]:
     """creates user in database
 
     Parameters
@@ -145,16 +145,17 @@ def create_user(db: Database, user: dict) -> str:
 
     Returns
     -------
-    str
-        user's id if successful
+    tuple[str, int]
+        user's id if successful with status code
 
     Raises
     ------
     InternalServerError
         if unsuccessful"""
     try:
+        print("hello wrold")
         db.insert_one(user)
-        return user.get("_id")
+        return user.get("_id"), 200
     except Exception as e:
         return e, 500
 
