@@ -1,6 +1,13 @@
+"""main app for patient tracker api"""
+import json
+from typing import Final
+from pathlib import Path
+
 from flask import Flask
 
 from patient_tracker_api import users, db
+
+ROOT_PATH: Final[Path] = Path(__file__).parent.parent
 
 # defining app
 app = Flask(__name__)
@@ -43,4 +50,32 @@ def get_user(username: str) -> dict:
         if unsuccessful"""
     users_db = db.get_database("users")
     print("username: " + username)
-    return users.get_user(users_db, username)
+    try:
+        return users.get_user(users_db, username)
+    except Exception:
+        return f"user {username} not found", 404
+
+
+@app.route("/create_user/<user_data>")
+def create_user(user_data: str) -> str:
+    """creates user in database
+
+    Parameters
+    ----------
+    user_data : str
+        user_data of user to create
+
+    Returns
+    -------
+    str
+        user's id if successful
+
+    Raises
+    ------
+    Exception
+        if unsuccessful"""
+    users_db = db.get_database("users")
+    try:
+        return users.create_user(users_db, user_data)
+    except Exception:
+        return f"user {user_data.get('_id')} not created", 403
