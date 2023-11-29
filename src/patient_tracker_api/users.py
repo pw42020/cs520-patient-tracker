@@ -7,8 +7,8 @@ from typing import Optional
 from dataclasses import dataclass
 from enum import Enum, auto
 
-# import collection from pymongo
-import pymongo
+# import database from pymongo
+from pymongo.database import Database
 
 
 class DoctorPatient(Enum):
@@ -100,29 +100,32 @@ class User:
         return json
 
 
-def get_user(collection, username: str) -> dict:
+def get_user(db: Database, username: str) -> tuple[User | str, int]:
     """gets user from database
 
     Parameters
     ----------
-    collection :
+    db: Database
         database to grab user from
     username : str
         username of user to grab
 
     Returns
     -------
-    dict
-        user if successful
+    tuple[User | str, int]
+        user, status code if successful, error string and status code if not
 
     Raises
     ------
     InternalServerError
         if unsuccessful"""
     try:
-        users = collection.find({"_id": username})
-        print(users[0].get("id"))
-        return users[0]
+        user = db.find_one({"_id": username})
+        if user is None:
+            return f"user {username} not found", 404
+        else:
+            user = User.from_json(user)
+            return user, 200
     except TypeError as e:
         """if something internal went wrong in the code"""
         return e, 500
@@ -130,12 +133,12 @@ def get_user(collection, username: str) -> dict:
         return e, 404
 
 
-def create_user(db, user: dict) -> str:
+def create_user(db: Database, user: dict) -> str:
     """creates user in database
 
     Parameters
     ----------
-    db :
+    db: Database
         database to create user in
     user : User
         user to create
@@ -152,5 +155,54 @@ def create_user(db, user: dict) -> str:
     try:
         db.insert_one(user)
         return user.get("_id")
+    except Exception as e:
+        return e, 500
+
+
+def update_user(db: Database, user_id: str, update_param: dict) -> int:
+    """updates the user in the database
+
+    Parameters
+    ----------
+    db : Database
+        database to update user in
+    user_id : str
+        id of user to update
+    update_param : dict
+        json representation of user to update
+
+    Returns
+    -------
+    int
+        0 if successful, 1 if not
+    """
+    db.update_one({"_id": user_id}, {"$set": update_param})
+
+
+def delete_user(db: Database, user_id: str, password: str) -> tuple[str, int]:
+    """deletes the user in the database
+
+    Parameters
+    ----------
+    db : Database
+        database to delete user in
+    user_id : str
+        id of user to delete
+    password: str
+        password of user to delete
+
+    Returns
+    -------
+    tuple[str, int]
+        tuple containing the id of the user deleted and the status code
+
+    Notes
+    -----
+    password is required so the user can only be deleted by the actual
+    user themself, not by anyone else.
+    """
+    try:
+        db.delete_one({"_id": user_id})
+        return user_id, 200
     except Exception as e:
         return e, 500
