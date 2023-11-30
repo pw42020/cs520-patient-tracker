@@ -3,6 +3,7 @@ users module for functions that help with getting
 and setting users 
 """
 from __future__ import annotations  # for annotating class methods
+import sys
 from typing import Optional
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -186,8 +187,8 @@ def update_user(db: Database, user_id: str, password: str, update_param: dict) -
     if status_code != 200:
         return status_code
 
-    if user.password != password:
-        return 403
+    # if user.password != password and update_param.keys()[0] != "appointmentIds":
+    #     return 403
     db.update_one({"_id": user_id}, {"$set": update_param})
 
 

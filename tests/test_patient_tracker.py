@@ -100,6 +100,11 @@ class TestPatientTrackerAPI(unittest.TestCase):
             http.HTTPStatus.OK,
         )
 
+        self.assertEqual(
+            self.app.get(f"/users/foobar").status_code,
+            http.HTTPStatus.NOT_FOUND,
+        )
+
         removeIds.append(user_json["_id"])
 
     def test_update_user(self) -> None:
@@ -161,22 +166,90 @@ class TestPatientTrackerAPI(unittest.TestCase):
             ).status_code,
             http.HTTPStatus.OK,
         )
+        ret_status = self.app.post(
+            f"/create_appointment",
+            data=json.dumps(
+                {
+                    "doctor_id": doctor_json["_id"],
+                    "patient_id": patient_json["_id"],
+                    "date": datetime.now().strftime(DATETIME_FORMAT),
+                    "summary": "test",
+                }
+            ),
+            content_type="application/json",
+        )
+        # print(ret_status.data.decode(), file=sys.stderr)
+        self.assertEqual(
+            ret_status.status_code,
+            http.HTTPStatus.OK,
+        )
 
+    def test_get_appointment(self) -> None:
+        """test ability to get specific created appointment"""
+
+        with open(f"{PATH_TO_ROOT}/assets/default_patient.json", "r") as f:
+            patient_json = json.loads(f.read())
+
+        patient_json.update({"_id": str(uuid.uuid4())})
         self.assertEqual(
             self.app.post(
-                f"/create_appointment",
-                data=json.dumps(
-                    {
-                        "doctor_id": doctor_json["_id"],
-                        "patient_id": patient_json["_id"],
-                        "date": datetime.now().strftime(DATETIME_FORMAT),
-                        "summary": "test",
-                    }
-                ),
+                f"/create_user",
+                data=json.dumps(patient_json),
                 content_type="application/json",
             ).status_code,
             http.HTTPStatus.OK,
         )
+
+        with open(f"{PATH_TO_ROOT}/assets/default_doctor.json", "r") as f:
+            doctor_json = json.loads(f.read())
+
+        doctor_json.update({"_id": str(uuid.uuid4())})
+        self.assertEqual(
+            self.app.post(
+                f"/create_user",
+                data=json.dumps(doctor_json),
+                content_type="application/json",
+            ).status_code,
+            http.HTTPStatus.OK,
+        )
+
+        return_val = self.app.post(
+            f"/create_appointment",
+            data=json.dumps(
+                {
+                    "doctor_id": doctor_json["_id"],
+                    "patient_id": patient_json["_id"],
+                    "date": datetime.now().strftime(DATETIME_FORMAT),
+                    "summary": "test",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(
+            return_val.status_code,
+            http.HTTPStatus.OK,
+        )
+
+        # testing get appointments for specific user
+        self.assertEqual(
+            self.app.get(f"/appointments/{return_val.data.decode()}").status_code,
+            http.HTTPStatus.OK,
+        )
+        # test get appointment for
+        self.assertEqual(
+            self.app.get(f"/{patient_json['_id']}/appointments").status_code,
+            http.HTTPStatus.OK,
+        )
+
+        # testing get appointments for specific user
+        self.assertEqual(
+            self.app.get(f"/appointments/foobar").status_code,
+            http.HTTPStatus.NOT_FOUND,
+        )
+
+        removeIds.append(patient_json["_id"])
+        removeIds.append(doctor_json["_id"])
 
 
 if __name__ == "__main__":

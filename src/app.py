@@ -161,8 +161,6 @@ def create_appointment():
         if unsuccessful"""
 
     appointment_data = request.get_json()
-    print(appointment_data)
-
     if (
         appointment_data.get("doctor_id") is None
         or appointment_data.get("patient_id") is None
@@ -171,13 +169,40 @@ def create_appointment():
     ):
         return "invalid input", 400
 
-    appointment: appointments.Appointment = appointments.Appointment(appointment_data)
+    appointment = appointments.Appointment.from_json(appointment_data)
 
     appointments_db = db.get_database("appointments")
+    users_db = db.get_database("users")
+
     try:
-        return appointments.create_appointment(appointments_db, appointment)
-    except Exception:
-        return f"appointment {appointment.get('_id')} not created", 403
+        # update user and doctor appointmentIds
+        doctor, status_code = users.get_user(users_db, appointment.doctor_id)
+        if status_code != 200:
+            raise Exception("doctor not found")
+        doctor.appointmentIds.append(appointment.id)
+        users.update_user(
+            db=users_db,
+            user_id=appointment.doctor_id,
+            password=None,
+            update_param={"appointmentIds": doctor.appointmentIds},
+        )
+
+        patient, status_code = users.get_user(users_db, appointment.patient_id)
+        if status_code != 200:
+            raise Exception("patient not found")
+        patient.appointmentIds.append(appointment.id)
+        users.update_user(
+            db=users_db,
+            user_id=appointment.patient_id,
+            password=None,
+            update_param={"appointmentIds": patient.appointmentIds},
+        )
+
+        appointments.create_appointment(appointments_db, appointment)
+        return appointment.id, 200
+    except Exception as e:
+        print(e, file=sys.stderr)
+        return e, 500
 
 
 """DEPRECATED"""
@@ -228,7 +253,7 @@ def get_appointment(appointment_id: str) -> dict:
         return f"appointment {appointment_id} not found", 404
 
 
-@app.route("/get_appointments/<username>", methods=["GET"])
+@app.route("/<username>/appointments", methods=["GET"])
 def get_appointments(username: str) -> dict:
     """Get all appointments for user
 
@@ -245,7 +270,9 @@ def get_appointments(username: str) -> dict:
     user_db: Database = db.get_database("users")
     appointments_db: Database = db.get_database("appointments")
 
-    user: users.User = users.get_user(user_db, username)
+    user, status_code = users.get_user(user_db, username)
+    if status_code != 200:
+        return "something went wrong with user", status_code
 
     appointments_dict: dict = {}
     for appointment_id in user.appointmentIds:
@@ -258,24 +285,4 @@ def get_appointments(username: str) -> dict:
 
 
 if __name__ == "__main__":
-    # format logger
-    # LOG_FORMAT = ["[%(asctime)s] [%(levelname)s]", "%(message)s "]
-
-    # log = logging.getLogger(__name__)
-    # log.setLevel(logging.DEBUG)
-    # LOG_FILE = "patient_tracker_api.log"
-    # logger = logging.FileHandler(LOG_FILE)
-    # logger.setFormatter("".join(LOG_FORMAT))
-    # log.addHandler(logger)
-    # logger.setLevel(logging.DEBUG)
-
-    # ch = logging.StreamHandler()
-    # ch.setLevel(logging.DEBUG)
-    # ch.setFormatter(CustomFormatter())
-    # log.addHandler(ch)
-
     app.run(debug=True)
-
-    # open file and read into json
-    # with open("assets/config.json", "r") as config_file:
-    #     config = json.load(config_file)
