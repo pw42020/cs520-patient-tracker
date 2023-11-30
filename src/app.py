@@ -62,15 +62,15 @@ def get_user(username: str) -> dict:
     Exception
         if unsuccessful"""
     users_db = db.get_database("users")
-    print("username: " + username)
+    user, status_code = users.get_user(users_db, username)
     try:
-        return users.get_user(users_db, username)
+        return user.to_json(), status_code
     except Exception:
         return f"user {username} not found", 404
 
 
-@app.route("/create_user/<user_data>", methods=["POST"])
-def create_user(user_data: str) -> str:
+@app.route("/create_user", methods=["POST"])
+def create_user() -> str:
     """creates user in database
 
     Parameters
@@ -89,15 +89,16 @@ def create_user(user_data: str) -> str:
         if unsuccessful"""
     users_db = db.get_database("users")
 
-    print(f"user_data: {user_data}", file=sys.stderr)
+    user_data = request.get_json()
+
     try:
         return users.create_user(users_db, user_data)
     except Exception:
         return f"user {user_data.get('_id')} not created", 403
 
 
-@app.route("/update_user/<user_id>/<update_param>", methods=["GET", "POST"])
-def update_user(user_id: str, update_param: str) -> int:
+@app.route("/update_user/<user_id>", methods=["PUT"])
+def update_user(user_id: str) -> int:
     """updates user in database
 
     Parameters
@@ -117,12 +118,27 @@ def update_user(user_id: str, update_param: str) -> int:
     Exception
         if unsuccessful"""
     users_db = db.get_database("users")
+
+    update_param = request.json.get("update_param")
+    password = request.json.get("password")
     try:
         # turn update_param into dict through json
-        update_param: dict[str, Any] = json.loads(update_param)
-        return users.update_user(users_db, user_id, update_param)
+        return user_id, users.update_user(users_db, user_id, password, update_param)
     except Exception:
         return f"user {user_id} not updated", 403
+
+
+@app.route("/delete_user/<user_id>", methods=["DELETE"])
+def delete_user(user_id: str) -> int:
+    """deletes user in database"""
+
+    user_password = request.get_json().get("password")
+
+    users_db = db.get_database("users")
+    try:
+        return users.delete_user(users_db, user_id, user_password)
+    except Exception:
+        return f"user {user_id} not deleted", 403
 
 
 @app.route("/create_appointment", methods=["POST"])
@@ -144,52 +160,72 @@ def create_appointment():
     Exception
         if unsuccessful"""
 
-    doctor_id: str = request.args.get("doctor_id")
-    patient_id: str = request.args.get("patient_id")
-    date: str = request.args.get("date")
-    summary: str = request.args.get("summary")
+    appointment_data = request.get_json()
+    print(appointment_data)
 
-    if doctor_id is None or patient_id is None or date is None or summary is None:
+    if (
+        appointment_data.get("doctor_id") is None
+        or appointment_data.get("patient_id") is None
+        or appointment_data.get("date") is None
+        or appointment_data.get("summary") is None
+    ):
         return "invalid input", 400
-
-    appointment_data = {
-        "doctor_id": doctor_id,
-        "patient_id": patient_id,
-        "date": date,
-        "summary": summary,
-    }
 
     appointment: appointments.Appointment = appointments.Appointment(appointment_data)
 
     appointments_db = db.get_database("appointments")
     try:
-        return users.create_appointment(appointments_db, appointment)
+        return appointments.create_appointment(appointments_db, appointment)
     except Exception:
         return f"appointment {appointment.get('_id')} not created", 403
 
 
-@app.route("/user_exists/<username>", methods=["GET"])
-def user_exists(username: str) -> bool:
-    """checks if user exists in database
+"""DEPRECATED"""
+# @app.route("/user_exists/<username>", methods=["GET"])
+# def user_exists(username: str) -> bool:
+#     """checks if user exists in database
+
+#     Parameters
+#     ----------
+#     username : str
+#         username of user to check
+
+#     Returns
+#     -------
+#     bool
+#         if user exists or not"""
+#     users_db = db.get_database("users")
+#     try:
+#         user, status_code = users.get_user(users_db, username)
+#         return user.get("_id") == None, status_code
+#     except Exception:
+#         return False, 500
+
+
+@app.route("/appointments/<appointment_id>", methods=["GET"])
+def get_appointment(appointment_id: str) -> dict:
+    """gets appointment from database
 
     Parameters
     ----------
-    username : str
-        username of user to check
+    appointment_id : str
+        id of appointment to get from database
 
     Returns
     -------
-    bool
-        if user exists or not"""
-    users_db = db.get_database("users")
+    dict
+        appointment if successful
+
+    Raises
+    ------
+    Exception
+        if unsuccessful"""
+    appointments_db = db.get_database("appointments")
+    appointment = appointments.get_appointment(appointments_db, appointment_id)
     try:
-        user, status_code = users.get_user(users_db, username)
-        if status_code == 200 and user != None:
-            return True
-        else:
-            return False
+        return appointment.to_json(), 200
     except Exception:
-        return False
+        return f"appointment {appointment_id} not found", 404
 
 
 @app.route("/get_appointments/<username>", methods=["GET"])
@@ -216,7 +252,7 @@ def get_appointments(username: str) -> dict:
         appointment: appointments.Appointment = appointments.get_appointment(
             appointments_db, appointment_id
         )
-        appointments_dict.update({appointment_id: appointment})
+        appointments_dict.update({appointment_id: appointment.to_json()})
 
     return appointments_dict
 

@@ -95,3 +95,31 @@ def create_appointment(
         return appointment.id
     except Exception as e:
         return e, 500
+
+
+def get_appointment(
+    appointments_db: pymongo.databases.database, appointment_id: str
+) -> Appointment:
+    """gets appointment from database
+
+    Parameters
+    ----------
+    appointments_db : pymongo.databases.database
+        database to get appointment from
+    appointment_id : str
+        id of appointment to get from database
+
+    Returns
+    -------
+    tuple[Appointment, int]
+        appointment if successful with status code
+
+    Raises
+    ------
+    Exception
+        if unsuccessful
+    """
+    appointment = Appointment.from_json(
+        appointments_db.find_one({"_id": appointment_id})
+    )
+    return appointment
