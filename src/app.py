@@ -10,7 +10,7 @@ from flask import request  # for multiple param input like with appointments
 
 from pymongo.database import Database
 
-from patient_tracker_api import users, db, appointments
+from patient_tracker_api import forms, users, db, appointments
 
 ROOT_PATH: Final[Path] = Path(__file__).parent.parent
 
@@ -141,6 +141,8 @@ def delete_user(user_id: str) -> int:
         return f"user {user_id} not deleted", 403
 
 
+
+
 @app.route("/create_appointment", methods=["POST"])
 def create_appointment():
     """creates appointment in database
@@ -204,28 +206,7 @@ def create_appointment():
         print(e, file=sys.stderr)
         return e, 500
 
-
-"""DEPRECATED"""
-# @app.route("/user_exists/<username>", methods=["GET"])
-# def user_exists(username: str) -> bool:
-#     """checks if user exists in database
-
-#     Parameters
-#     ----------
-#     username : str
-#         username of user to check
-
-#     Returns
-#     -------
-#     bool
-#         if user exists or not"""
-#     users_db = db.get_database("users")
-#     try:
-#         user, status_code = users.get_user(users_db, username)
-#         return user.get("_id") == None, status_code
-#     except Exception:
-#         return False, 500
-
+    
 
 @app.route("/appointments/<appointment_id>", methods=["GET"])
 def get_appointment(appointment_id: str) -> dict:
@@ -283,6 +264,138 @@ def get_appointments(username: str) -> dict:
 
     return appointments_dict
 
+
+
+
+
+
+# Creating form
+
+@app.route("/create_form", methods=["POST"])
+def create_form():
+    """creates form in database
+
+    Parameters
+    ----------
+    form_data : str
+        form_data of form to create
+
+    Returns
+    -------
+    str
+        form's id if successful
+
+    Raises
+    ------
+    Exception
+        if unsuccessful"""
+
+    form_data = request.get_json()
+    if (
+        form_data.get("referringDoctorId") is None
+        or form_data.get("patientId") is None
+        or form_data.get("diagnosis") is None
+    ):
+        return "invalid input", 400
+
+    form = forms.form.from_json(form_data)
+
+    forms_db = db.get_database("forms")
+    users_db = db.get_database("users")
+
+    try:
+        # update user and doctor formIds
+        doctor, status_code = users.get_user(users_db, form.referringDoctorId)
+        if status_code != 200:
+            raise Exception("doctor not found")
+        doctor.formIds.append(form.id)
+        users.update_user(
+            db=users_db,
+            user_id=form.referringDoctorId,
+            password=None,
+            update_param={"formIds": doctor.formIds},
+        )
+
+        patient, status_code = users.get_user(users_db, form.patient_id)
+        if status_code != 200:
+            raise Exception("patient not found")
+        patient.formIds.append(form.id)
+        users.update_user(
+            db=users_db,
+            user_id=form.patient_id,
+            password=None,
+            update_param={"formIds": patient.formIds},
+        )
+
+        forms.create_form(forms_db, form)
+        return form.id, 200
+    except Exception as e:
+        print(e, file=sys.stderr)
+        return e, 500
+
+    
+
+@app.route("/forms/<form_id>", methods=["GET"])
+def get_form(form_id: str) -> dict:
+    """gets form from database
+
+    Parameters
+    ----------
+    form_id : str
+        id of form to get from database
+
+    Returns
+    -------
+    dict
+        form if successful
+
+    Raises
+    ------
+    Exception
+        if unsuccessful"""
+    forms_db = db.get_database("forms")
+    form = forms.get_form(forms_db, form_id)
+    try:
+        return form.to_json(), 200
+    except Exception:
+        return f"form {form_id} not found", 404
+
+
+@app.route("/<username>/forms", methods=["GET"])
+def get_forms(username: str) -> dict:
+    """Get all forms for user
+
+    Parameters
+    ----------
+    username : str
+        username of user to get forms for
+
+    Returns
+    -------
+    dict
+        forms if successful
+    """
+    user_db: Database = db.get_database("users")
+    forms_db: Database = db.get_database("forms")
+
+    user, status_code = users.get_user(user_db, username)
+    if status_code != 200:
+        return "something went wrong with user", status_code
+
+    forms_dict: dict = {}
+    for form_id in user.formIds:
+        form: forms.form = forms.get_form(
+            forms_db, form_id
+        )
+        forms_dict.update({form_id: form.to_json()})
+
+    return forms_dict
+
+
+
+
+
+# defining app  
 
 if __name__ == "__main__":
     app.run(debug=True)
