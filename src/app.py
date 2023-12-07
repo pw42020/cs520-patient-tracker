@@ -392,8 +392,47 @@ def get_forms(username: str) -> dict:
     return forms_dict
 
 
+@app.route("/<name>/search", methods=["GET"])
+def serach_users(name: str) -> dict:
+    """Get all forms for user
 
+    Parameters
+    ----------
+    username : str
+        username of user to get forms for
 
+    Returns
+    -------
+    dict
+        forms if successful
+    """
+    user_db: Database = db.get_database("users")
+    user, status_code = users.get_profile(user_db, name)
+    if status_code != 200:
+        return "something went wrong with user", status_code
+        
+    return user
+    
+@app.route("/<name>/doctors", methods=["GET"])
+def serach_doctors(name: str) -> dict:
+    """Get all forms for user
+
+    Parameters
+    ----------
+    username : str
+        username of user to get forms for
+
+    Returns
+    -------
+    dict
+        forms if successful
+    """
+    user_db: Database = db.get_database("users")
+    user, status_code = users.get_doctors(user_db, name)
+    if status_code != 200:
+        return "something went wrong with user", status_code
+        
+    return user
 
 # defining app  
 

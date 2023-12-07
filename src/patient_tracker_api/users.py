@@ -7,6 +7,8 @@ import sys
 from typing import Optional
 from dataclasses import dataclass
 from enum import Enum, auto
+from flask import jsonify
+
 
 # import database from pymongo
 from pymongo.database import Database
@@ -132,7 +134,63 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
         return e, 500
     except Exception as e:
         return e, 404
+    
+def get_profile(db: Database, name: str) -> tuple[list, int]:
+    """gets user profile from database and return without the password field
 
+    Parameters
+    ----------
+    db: Database
+        database to grab user from
+    name : str
+        Name of user to grab
+
+    Returns
+    -------
+    tuple[list(User | str), int]
+        user, status code if successful, error string and status code if not
+
+    Raises
+    ------
+    InternalServerError
+        if unsuccessful"""
+    try:
+        users = db.find({"name": name},{"password":0})
+        return list(users), 200
+    except TypeError as e:
+        """if something internal went wrong in the code"""
+        return e, 500
+    except Exception as e:
+        return e, 404
+
+
+def get_doctors(db: Database, name: str) -> tuple[list, int]:
+    """gets docotor profile from database and return without the password and SSN field
+
+    Parameters
+    ----------
+    db: Database
+        database to grab user from
+    name : str
+        Name of user to grab
+
+    Returns
+    -------
+    tuple[list(User | str), int]
+        user, status code if successful, error string and status code if not
+
+    Raises
+    ------
+    InternalServerError
+        if unsuccessful"""
+    try:
+        users = db.find({"name": name, "doctorPatient" : 0},{"password":0, "SSN":0})
+        return list(users), 200
+    except TypeError as e:
+        """if something internal went wrong in the code"""
+        return e, 500
+    except Exception as e:
+        return e, 404
 
 def create_user(db: Database, user: dict) -> tuple[str, int]:
     """creates user in database
