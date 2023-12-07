@@ -6,6 +6,7 @@ from typing import Final, Any
 from pathlib import Path
 
 from flask import Flask
+from flask_cors import CORS
 from flask import request  # for multiple param input like with appointments
 
 from pymongo.database import Database
@@ -24,6 +25,7 @@ def create_app():
 
 
 app = create_app()
+CORS(app)
 
 
 @app.route("/", methods=["GET"])
