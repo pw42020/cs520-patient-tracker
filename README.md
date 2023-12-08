@@ -50,3 +50,41 @@ Press CTRL+C to quit
 ```
 
 To ensure the database is on and running, open a separate terminal and enter `curl http://127.0.0.1:5000`. If your output says, `Pinged your deployment. You successfully connected to MongoDB!`, your deployed API is good to go!
+
+### Generate documentation
+```sh
+cd docs
+make html
+```
+
+You should get output like this:
+```sh
+cs520-patient-tracker/docs on  main [$!?] via 🐍 3.9.6 via cs520-patient-tracker 
+➜ make html
+Running Sphinx v7.2.6
+/Users/patrickwalsh/dev/cs520-patient-tracker/.venv/lib/python3.9/site-packages/urllib3/__init__.py:34: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+loading pickled environment... done
+building [mo]: targets for 0 po files that are out of date
+writing output... 
+building [html]: targets for 0 source files that are out of date
+updating environment: 0 added, 1 changed, 0 removed
+reading sources... [100%] index
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+copying assets... copying static files... done
+copying extra files... done
+done
+writing output... [100%] index
+generating indices... genindex py-modindex done
+writing additional pages... search done
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded.
+
+The HTML pages are in _build/html.
+```
+
+and opening `_build/html/index.html` in Chrome should show all of the documentation!

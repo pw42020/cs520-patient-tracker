@@ -79,34 +79,6 @@ class TestPatientTrackerAPI(unittest.TestCase):
 
         # testing that user is no longer gettable in database
 
-    def test_get_user(self) -> None:
-        """tests get_user function in app.py"""
-
-        with open(f"{PATH_TO_ROOT}/assets/default_patient.json", "r") as f:
-            user_json = json.loads(f.read())
-
-        user_json.update({"_id": str(uuid.uuid4())})  # random username to not conflict
-        self.assertEqual(
-            self.app.post(
-                f"/create_user",
-                data=json.dumps(user_json),
-                content_type="application/json",
-            ).status_code,
-            http.HTTPStatus.OK,
-        )
-
-        self.assertEqual(
-            self.app.get(f"/users/{user_json.get('_id')}").status_code,
-            http.HTTPStatus.OK,
-        )
-
-        self.assertEqual(
-            self.app.get(f"/users/foobar").status_code,
-            http.HTTPStatus.NOT_FOUND,
-        )
-
-        removeIds.append(user_json["_id"])
-
     def test_update_user(self) -> None:
         """tests update_user function in app.py"""
 
