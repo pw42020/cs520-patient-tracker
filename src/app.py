@@ -4,6 +4,7 @@ import logging
 import json
 from typing import Final, Any
 from pathlib import Path
+from bson import ObjectId
 
 from flask import Flask
 from flask import request  # for multiple param input like with appointments
@@ -289,11 +290,11 @@ def create_form():
     ------
     Exception
         if unsuccessful"""
-
+    print(request.get_json())
     form_data = request.get_json()
     if (
-        form_data.get("referringDoctorId") is None
-        or form_data.get("patientId") is None
+       #form_data.get("referringDoctorId") is None
+         form_data.get("patient_id") is None
         or form_data.get("diagnosis") is None
     ):
         return "invalid input", 400
@@ -304,18 +305,6 @@ def create_form():
     users_db = db.get_database("users")
 
     try:
-        # update user and doctor formIds
-        doctor, status_code = users.get_user(users_db, form.referringDoctorId)
-        if status_code != 200:
-            raise Exception("doctor not found")
-        doctor.formIds.append(form.id)
-        users.update_user(
-            db=users_db,
-            user_id=form.referringDoctorId,
-            password=None,
-            update_param={"formIds": doctor.formIds},
-        )
-
         patient, status_code = users.get_user(users_db, form.patient_id)
         if status_code != 200:
             raise Exception("patient not found")
@@ -390,6 +379,25 @@ def get_forms(username: str) -> dict:
         forms_dict.update({form_id: form.to_json()})
 
     return forms_dict
+
+
+
+@app.route("/deleteForm", methods=["POST"])
+def delete_form():
+    """deletes form in database"""
+     
+        
+    form_data = request.get_json()
+    forms_db = db.get_database("forms")
+    users_db = db.get_database("users")
+    try:
+        message = forms.delete_form(usersdb=users_db, formsdb=forms_db, form_id=form_data['_id'], patient_id=form_data['patient_id'])
+        print(message)
+        return message, 200
+    except Exception as e:
+        print(e)
+        return e, 500
+
 
 
 
