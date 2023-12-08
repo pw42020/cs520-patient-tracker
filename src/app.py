@@ -46,7 +46,7 @@ def ping_db() -> str:
     return db.ping_database()
 
 
-@app.route("/users/<username>", methods=["GET"])
+@app.route("/users/<username>", methods=["POST"])
 def get_user(username: str) -> dict:
     """gets user from database
 
@@ -90,7 +90,7 @@ def get_user(username: str) -> dict:
         return f"user {username} not found", 404
 
 
-@app.route("/sign_in", methods=["GET"])
+@app.route("/sign_in", methods=["POST"])
 def sign_in() -> dict:
     """sign in a user with a username and password"""
     user_password = request.get_json()
