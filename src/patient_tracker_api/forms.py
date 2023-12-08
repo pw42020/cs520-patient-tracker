@@ -16,13 +16,9 @@ class form:
     patient_id: str
     patientName: str
     patientDOB: str
-    referringDoctor: str
-    referringDoctorId: str
-    referringDoctorPhone: str
     briefClinicalHistory: str
     diagnosis: str
     studyDate: str
-    pdfUrl: list[str]
 
     @classmethod
     def from_json(cls, data: dict) -> form:
@@ -48,13 +44,9 @@ class form:
                 patient_id=data.get("patient_id"),
                 patientName=data.get("patientName"),
                 patientDOB=data.get("patientDOB"),
-                referringDoctor=data.get("referringDoctor"),
-                referringDoctorId=data.get("referringDoctorId"),
-                referringDoctorPhone=data.get("referringDoctorPhone"),
                 briefClinicalHistory=data.get("briefClinicalHistory"),
                 diagnosis=data.get("diagnosis"),
                 studyDate=data.get("studyDate"),
-                pdfUrl=data.get("pdfUrl"),
                 
             )
         else:
@@ -63,13 +55,9 @@ class form:
                 patient_id=data.get("patient_id"),
                 patientName=data.get("patientName"),
                 patientDOB=data.get("patientDOB"),
-                referringDoctor=data.get("referringDoctor"),
-                referringDoctorId=data.get("referringDoctorId"),
-                referringDoctorPhone=data.get("referringDoctorPhone"),
                 briefClinicalHistory=data.get("briefClinicalHistory"),
                 diagnosis=data.get("diagnosis"),
                 studyDate=data.get("studyDate"),
-                pdfUrl=data.get("pdfUrl"),
             )
 
     def to_json(self) -> dict:
@@ -85,13 +73,9 @@ class form:
             "patient_id": self.patient_id,
             "patientName": self.patientName,
             "patientDOB": self.patientDOB,
-            "referringDoctor": self.referringDoctor,
-            "referringDoctorId": self.referringDoctorId,
-            "referringDoctorPhone": self.referringDoctorPhone,
             "briefClinicalHistory": self.briefClinicalHistory,
             "diagnosis": self.diagnosis,
             "studyDate": self.studyDate,
-            "pdfUrl": self.pdfUrl,
         }
 
 
@@ -151,3 +135,44 @@ def get_form(
     form_json = form_db.find_one({"_id": form_id})
 
     return form.from_json(form_json) if form_json else None
+
+
+
+def delete_form(usersdb: pymongo.databases.database, formsdb: pymongo.databases.database,
+                form_id: str, patient_id: str) -> str:
+    """deletes the form in the database
+
+    Parameters
+    ----------
+    usersdb : Database
+        database of users to delete the form Id in
+    formsdb : Database
+        database of forms to delete the form from
+    patient_id : str
+        id of patient to delete the form from
+    form_id: str
+        form Id of the form to delete
+
+    Returns
+    -------
+    str
+        message if successful
+    """
+    try:
+        existing_form = formsdb.find_one({'_id': form_id})
+    
+        update_criteria = {'_id': patient_id}
+        update_query = {'$pull': {'formIds': form_id}} 
+            
+        print(update_query)
+        if existing_form:
+            formsdb.delete_one({'_id': (form_id)})
+            usersdb.update_one(update_criteria, update_query)
+            print("Form deleted successfully")
+        else:
+            print("Form not found")
+            
+        return {form_id, "200"}
+    except Exception as e:
+        print(f"Error: {e}")
+        return f"form can't be deleted 404"

@@ -3,11 +3,7 @@
     "patient_id": "anonymous_patient_id",
     "patientName": "anonymous_patient_name",
     "patientDOB": "anonymous_patient_DOB",
-    "referringDoctor": "anonymous_referring_doctor",
-    "referringDoctorId": "anonymous_referring_doctor_id",
-    "referringDoctorPhone": "anonymous_referring_doctor_phone",
     "briefClinicalHistory": "anonymous_brief_clinical_history",
     "diagnosis": "anonymous_diagnosis",
-    "studyDate": "anonymous_study_date",
-    "pdfUrl": "anonymous_pdf_url"
+    "studyDate": "anonymous_study_date"
 }
