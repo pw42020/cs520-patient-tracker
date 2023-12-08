@@ -1,8 +1,8 @@
 """main app for patient tracker api"""
 import sys
-import logging
 import json
-from typing import Final, Any
+import hashlib
+from typing import Final
 from pathlib import Path
 
 from flask import Flask
@@ -12,6 +12,7 @@ from flask import request  # for multiple param input like with appointments
 from pymongo.database import Database
 
 from patient_tracker_api import forms, users, db, appointments
+from patient_tracker_api.users import DoctorPatient
 
 ROOT_PATH: Final[Path] = Path(__file__).parent.parent
 
@@ -63,12 +64,48 @@ def get_user(username: str) -> dict:
     ------
     Exception
         if unsuccessful"""
+
+    caller_id: str = request.get_json().get("caller_id")
     users_db = db.get_database("users")
+
+    if caller_id is None:
+        return "invalid input", 400
+
+    user, status_code = users.get_user(users_db, caller_id)
+
+    if status_code != 200:
+        return "something went wrong with user", status_code
+
+    if user.doctorPatient == 1:
+        return f"User {username} not found", 404
+
     user, status_code = users.get_user(users_db, username)
+    user_json: dict[str, str] = user.to_json()
+    # remove sensitive information
+    user_json.pop("password")
+    user_json.pop("SSN")
     try:
-        return user.to_json(), status_code
+        return user_json, status_code
     except Exception:
         return f"user {username} not found", 404
+
+
+@app.route("/sign_in", methods=["GET"])
+def sign_in() -> dict:
+    """sign in a user with a username and password"""
+    user_password = request.get_json()
+    users_db = db.get_database("users")
+    user, status_code = users.get_user(users_db, user_password.get("username"))
+    if status_code != 200:
+        return user, status_code
+    if (
+        hashlib.sha256(user_password.get("password").encode()).hexdigest()
+        != user.password
+    ):
+        return "invalid password", 400
+    if status_code != 200:
+        return "something went wrong with user", status_code
+    return user.to_json(), 200
 
 
 @app.route("/create_user", methods=["POST"])
@@ -143,8 +180,6 @@ def delete_user(user_id: str) -> int:
         return f"user {user_id} not deleted", 403
 
 
-
-
 @app.route("/create_appointment", methods=["POST"])
 def create_appointment():
     """creates appointment in database
@@ -205,10 +240,8 @@ def create_appointment():
         appointments.create_appointment(appointments_db, appointment)
         return appointment.id, 200
     except Exception as e:
-        print(e, file=sys.stderr)
         return e, 500
 
-    
 
 @app.route("/appointments/<appointment_id>", methods=["GET"])
 def get_appointment(appointment_id: str) -> dict:
@@ -267,11 +300,8 @@ def get_appointments(username: str) -> dict:
     return appointments_dict
 
 
-
-
-
-
 # Creating form
+
 
 @app.route("/create_form", methods=["POST"])
 def create_form():
@@ -332,10 +362,8 @@ def create_form():
         forms.create_form(forms_db, form)
         return form.id, 200
     except Exception as e:
-        print(e, file=sys.stderr)
         return e, 500
 
-    
 
 @app.route("/forms/<form_id>", methods=["GET"])
 def get_form(form_id: str) -> dict:
@@ -386,16 +414,14 @@ def get_forms(username: str) -> dict:
 
     forms_dict: dict = {}
     for form_id in user.formIds:
-        form: forms.form = forms.get_form(
-            forms_db, form_id
-        )
+        form: forms.form = forms.get_form(forms_db, form_id)
         forms_dict.update({form_id: form.to_json()})
 
     return forms_dict
 
 
 @app.route("/<name>/search", methods=["GET"])
-def serach_users(name: str) -> dict:
+def search_users(name: str) -> dict:
     """Get all forms for user
 
     Parameters
@@ -412,11 +438,12 @@ def serach_users(name: str) -> dict:
     user, status_code = users.get_profile(user_db, name)
     if status_code != 200:
         return "something went wrong with user", status_code
-        
+
     return user
-    
+
+
 @app.route("/<name>/doctors", methods=["GET"])
-def serach_doctors(name: str) -> dict:
+def search_doctors(name: str) -> dict:
     """Get all forms for user
 
     Parameters
@@ -433,10 +460,16 @@ def serach_doctors(name: str) -> dict:
     user, status_code = users.get_doctors(user_db, name)
     if status_code != 200:
         return "something went wrong with user", status_code
-        
+
     return user
 
-# defining app  
+
+# defining app
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # add default_patient.json to database
+    with open(f"{ROOT_PATH}/assets/default_doctor.json", "r") as f:
+        user_json = json.loads(f.read())
+
+    users_db = db.get_database("users")
+    users.create_user(users_db, user_json)

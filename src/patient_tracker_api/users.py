@@ -7,7 +7,7 @@ import sys
 from typing import Optional
 from dataclasses import dataclass
 from enum import Enum, auto
-from flask import jsonify
+import hashlib
 
 
 # import database from pymongo
@@ -29,8 +29,8 @@ class User:
     doctorPatient: Enum
     name: str
     DOB: str
-    password: str
-    SSN: str
+    password: bytes
+    SSN: bytes
     formIds: list[str]
     gender: str
     address1: str
@@ -124,7 +124,7 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
         if unsuccessful"""
     try:
         user = db.find_one({"_id": username})
-        if user.get("_id") is None:
+        if user is None:
             return f"user {username} not found", 404
         else:
             user = User.from_json(user)
@@ -134,7 +134,8 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
         return e, 500
     except Exception as e:
         return e, 404
-    
+
+
 def get_profile(db: Database, name: str) -> tuple[list, int]:
     """gets user profile from database and return without the password field
 
@@ -155,7 +156,7 @@ def get_profile(db: Database, name: str) -> tuple[list, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        users = db.find({"name": name},{"password":0})
+        users = db.find({"name": name}, {"password": 0})
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
@@ -184,13 +185,14 @@ def get_doctors(db: Database, name: str) -> tuple[list, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        users = db.find({"name": name, "doctorPatient" : 0},{"password":0, "SSN":0})
+        users = db.find({"name": name, "doctorPatient": 0}, {"password": 0, "SSN": 0})
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
         return e, 500
     except Exception as e:
         return e, 404
+
 
 def create_user(db: Database, user: dict) -> tuple[str, int]:
     """creates user in database
@@ -215,6 +217,13 @@ def create_user(db: Database, user: dict) -> tuple[str, int]:
         possible_user = db.find_one({"_id": user.get("_id")})
         if possible_user is not None:
             return f"user {user.get('_id')} already exists", 403
+
+        # hashing user's password and social security number
+        user.update(
+            {"password": hashlib.sha256(user.get("password").encode()).hexdigest()}
+        )
+        user.update({"SSN": hashlib.sha256(user.get("SSN").encode()).hexdigest()})
+
         db.insert_one(user)
         return user.get("_id"), 200
     except Exception as e:
