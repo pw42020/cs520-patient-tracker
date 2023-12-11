@@ -3,13 +3,15 @@
 import json
 import sys
 
-import rsa
-from rsa import PublicKey
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+
+import base64
 
 MAX_BYTES: int = 117
 
 
-def get_public_key(public_key: str) -> PublicKey:
+def get_public_key(public_key: str) -> RSA.RsaKey:
     """gets public key from string
 
     Parameters
@@ -19,13 +21,13 @@ def get_public_key(public_key: str) -> PublicKey:
 
     Returns
     -------
-    PublicKey
+    RSA.RsaKey
         public key
     """
-    return PublicKey.load_pkcs1(public_key.encode())
+    return RSA.importKey(public_key)
 
 
-def encrypt_data(data: dict[str, str], public_key: PublicKey) -> bytes:
+def encrypt_data(data: dict[str, str], public_key: RSA.RsaKey) -> bytes:
     """encrypts data with public key
 
     Parameters
@@ -41,19 +43,21 @@ def encrypt_data(data: dict[str, str], public_key: PublicKey) -> bytes:
         encrypted data
     """
     byte_package = json.dumps(data).encode()
+
+    cipher = PKCS1_v1_5.new(public_key)
     total_encrypted_message = [
-        rsa.encrypt(
+        cipher.encrypt(
             byte_package[
                 i : i + MAX_BYTES
                 if i + MAX_BYTES < len(byte_package)
                 else len(byte_package) - 1
-            ],
-            public_key,
-        )
+            ]
+        ).hex()
         for i in range(0, len(byte_package), MAX_BYTES)
     ]
     # retroactively add last part missed if there was a part missed
     total_encrypted_message.append(
-        rsa.encrypt(byte_package[-(len(byte_package) % MAX_BYTES) :], public_key)
+        cipher.encrypt(byte_package[-(len(byte_package) % MAX_BYTES) :]).hex()
     )
-    return b"".join(total_encrypted_message)
+    print("".join(total_encrypted_message))
+    return "".join(total_encrypted_message)

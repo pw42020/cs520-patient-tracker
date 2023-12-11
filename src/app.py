@@ -74,9 +74,6 @@ def get_user(username: str) -> dict:
     caller_id: str = request.get_json().get("caller_id")
     users_db = db.get_database("users")
 
-    print(caller_id, file=sys.stderr)
-    print(username, file=sys.stderr)
-
     if caller_id is None:
         return "invalid input", 400
 
@@ -111,11 +108,9 @@ def get_user(username: str) -> dict:
 def sign_in() -> dict:
     """sign in a user with a username and password"""
     user_json = request.get_json()
-    print(user_json, file=sys.stderr)
     users_db = db.get_database("users")
 
     user, status_code = users.get_user(users_db, user_json.get("username"))
-    print(user, file=sys.stderr)
 
     # update user encryption key
     if users.update_user_encryption_key(
@@ -135,7 +130,7 @@ def sign_in() -> dict:
     return (
         {
             "data": security.encrypt_data(
-                data=json.dumps(user.__dict__),
+                data=user.__dict__,
                 public_key=security.get_public_key(user_json.get("publicKey")),
             ),
         },
