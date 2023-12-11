@@ -81,7 +81,7 @@ def get_user(username: str) -> dict:
         return f"User {username} not found", 404
 
     user, status_code = users.get_user(users_db, username)
-    user_json: dict[str, str] = user.to_json()
+    user_json: dict[str, str] = user.__dict__
     # remove sensitive information
     user_json.pop("password")
     user_json.pop("SSN")
@@ -106,7 +106,7 @@ def sign_in() -> dict:
         return "invalid password", 400
     if status_code != 200:
         return "something went wrong with user", status_code
-    return user.to_json(), 200
+    return user.__dict__, 200
 
 
 @app.route("/create_user", methods=["POST"])
@@ -209,7 +209,7 @@ def create_appointment():
     ):
         return "invalid input", 400
 
-    appointment = appointments.Appointment.from_json(appointment_data)
+    appointment = appointments.Appointment(**appointment_data)
 
     appointments_db = db.get_database("appointments")
     users_db = db.get_database("users")
@@ -265,7 +265,7 @@ def get_appointment(appointment_id: str) -> dict:
     appointments_db = db.get_database("appointments")
     appointment = appointments.get_appointment(appointments_db, appointment_id)
     try:
-        return appointment.to_json(), 200
+        return appointment.__dict__, 200
     except Exception:
         return f"appointment {appointment_id} not found", 404
 
@@ -296,7 +296,7 @@ def get_appointments(username: str) -> dict:
         appointment: appointments.Appointment = appointments.get_appointment(
             appointments_db, appointment_id
         )
-        appointments_dict.update({appointment_id: appointment.to_json()})
+        appointments_dict.update({appointment_id: appointment.__dict__})
 
     return appointments_dict
 
@@ -325,8 +325,8 @@ def create_form():
     print(request.get_json())
     form_data = request.get_json()
     if (
-       #form_data.get("referringDoctorId") is None
-         form_data.get("patient_id") is None
+        # form_data.get("referringDoctorId") is None
+        form_data.get("patient_id") is None
         or form_data.get("diagnosis") is None
     ):
         return "invalid input", 400
@@ -409,23 +409,25 @@ def get_forms(username: str) -> dict:
     return forms_dict
 
 
-
 @app.route("/deleteForm", methods=["POST"])
 def delete_form():
     """deletes form in database"""
-     
-        
+
     form_data = request.get_json()
     forms_db = db.get_database("forms")
     users_db = db.get_database("users")
     try:
-        message = forms.delete_form(usersdb=users_db, formsdb=forms_db, form_id=form_data['_id'], patient_id=form_data['patient_id'])
+        message = forms.delete_form(
+            usersdb=users_db,
+            formsdb=forms_db,
+            form_id=form_data["_id"],
+            patient_id=form_data["patient_id"],
+        )
         print(message)
         return message, 200
     except Exception as e:
         print(e)
         return e, 500
-
 
 
 @app.route("/<name>/search", methods=["GET"])

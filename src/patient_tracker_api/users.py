@@ -25,7 +25,7 @@ class DoctorPatient(Enum):
 class User:
     """functional interface to represent a user"""
 
-    id: str
+    _id: str
     doctorPatient: Enum
     name: str
     DOB: str
@@ -41,66 +41,6 @@ class User:
     imageUrl: str
     appointmentIds: list[str]
     availableSlots: list[str]
-
-    @classmethod
-    def from_json(cls, data: dict) -> User:
-        """converts json to user
-
-        Parameters
-        ----------
-        data : dict
-            json representation of user
-
-        Returns
-        -------
-        User
-            user if successful
-        """
-        return cls(
-            id=data.get("_id"),
-            doctorPatient=data.get("doctorPatient"),
-            name=data.get("name"),
-            DOB=data.get("DOB"),
-            password=data.get("password"),
-            SSN=data.get("SSN"),
-            formIds=data.get("formIds"),
-            gender=data.get("gender"),
-            address1=data.get("address1"),
-            address2=data.get("address2"),
-            city=data.get("city"),
-            state=data.get("state"),
-            zip=data.get("zip"),
-            imageUrl=data.get("imageUrl"),
-            appointmentIds=data.get("appointmentIds"),
-            availableSlots=data.get("availableSlots"),
-        )
-
-    def to_json(self) -> dict:
-        """converts user to json
-
-        Returns
-        -------
-        dict
-            json representation of user"""
-        json: dict = {}
-        json["_id"] = self.id
-        json["doctorPatient"] = self.doctorPatient
-        json["name"] = self.name
-        json["DOB"] = self.DOB
-        json["password"] = self.password
-        json["SSN"] = self.SSN
-        json["formIds"] = self.formIds
-        json["gender"] = self.gender
-        json["address1"] = self.address1
-        json["address2"] = self.address2
-        json["city"] = self.city
-        json["state"] = self.state
-        json["zip"] = self.zip
-        json["imageUrl"] = self.imageUrl
-        json["appointmentIds"] = self.appointmentIds
-        json["availableSlots"] = self.availableSlots
-
-        return json
 
 
 def get_user(db: Database, username: str) -> tuple[User | str, int]:
@@ -123,11 +63,11 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        user = db.find_one({"_id": username})
-        if user is None:
+        user_json = db.find_one({"_id": username})
+        if user_json is None:
             return f"user {username} not found", 404
         else:
-            user = User.from_json(user)
+            user = User(**user_json)
             return user, 200
     except TypeError as e:
         """if something internal went wrong in the code"""
@@ -156,7 +96,7 @@ def get_profile(db: Database, name: str) -> tuple[list, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        users = db.find({"name": name}, {"password": 0})
+        users: list[str] = db.find({"name": name}, {"password": 0})
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
@@ -185,7 +125,9 @@ def get_doctors(db: Database, name: str) -> tuple[list, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        users = db.find({"name": name, "doctorPatient": 0}, {"password": 0, "SSN": 0})
+        users: list[str] = db.find(
+            {"name": name, "doctorPatient": 0}, {"password": 0, "SSN": 0}
+        )
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
@@ -214,7 +156,7 @@ def create_user(db: Database, user: dict) -> tuple[str, int]:
     InternalServerError
         if unsuccessful"""
     try:
-        possible_user = db.find_one({"_id": user.get("_id")})
+        possible_user: str = db.find_one({"_id": user.get("_id")})
         if possible_user is not None:
             return f"user {user.get('_id')} already exists", 403
 

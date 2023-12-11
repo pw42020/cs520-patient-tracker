@@ -39,7 +39,7 @@ class TestGetUsers(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.app.get(
+            self.app.post(
                 f"/sign_in",
                 data=json.dumps(
                     {
@@ -87,7 +87,7 @@ class TestGetUsers(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.app.get(
+            self.app.post(
                 f"/users/{patient_json.get('_id')}",
                 data=json.dumps({"caller_id": doctor_json.get("_id")}),
                 content_type="application/json",
@@ -96,7 +96,7 @@ class TestGetUsers(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.app.get(
+            self.app.post(
                 f"/users/{doctor_json.get('_id')}",
                 data=json.dumps({"caller_id": patient_json.get("_id")}),
                 content_type="application/json",
