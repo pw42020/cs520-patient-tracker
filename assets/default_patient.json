@@ -14,5 +14,6 @@
     "zip": "10001",
     "imageUrl": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?cs=srgb&dl=pexels-simon-robben-614810.jpg&fm=jpg",
     "appointmentIds": [],
-    "availableSlots": []
+    "availableSlots": [],
+    "publicKey": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAqHH6uExPyrIZm2BHXVJ6N9/EkeX14oxyUMJhYRgwYot/5ii13Qrh\nloFU0kn3iOH24IL516w13WGaDv6WYF3j9Os9WyWHmgX0aSTYvPZnc9E3dQLRPdT2\nE9PM1wVIrnxifNOEGyGbuRNW4Y/feYLQ8Z9w2SgCosgeYR7ZY3fZ7jUi5C677GYG\n7chAxslQVhx+f6PvfDZMseZKxSjoeL9D1hCAPhWd5e2LSUoYd9piRKK+Lq+wGHVj\nDD1bgooRjkFULQ988CcJ4j/rwIUxGlANAO2v6qQDzXeJNeoa8hx80rBo5qUxdbdV\nBLhXirqf6ZhGuYvWAwS4QFi0h0Kx3Old1wIDAQAB\n-----END RSA PUBLIC KEY-----"
 }

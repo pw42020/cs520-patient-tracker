@@ -41,6 +41,9 @@ class User:
     imageUrl: str
     appointmentIds: list[str]
     availableSlots: list[str]
+    # optional option of public key for encryption, will simply send data
+    # with warning that data is not encrypted if not provided for debugging
+    publicKey: Optional[str] = None
 
 
 def get_user(db: Database, username: str) -> tuple[User | str, int]:
@@ -201,7 +204,7 @@ def update_user(db: Database, user_id: str, password: str, update_param: dict) -
     db.update_one({"_id": user_id}, {"$set": update_param})
 
 
-def delete_user(db: Database, user_id: str, password: str) -> tuple[str, int]:
+def delete_user(db: Database, user_id: str, password: str) -> int:
     """deletes the user in the database
 
     Parameters
@@ -215,8 +218,8 @@ def delete_user(db: Database, user_id: str, password: str) -> tuple[str, int]:
 
     Returns
     -------
-    tuple[str, int]
-        tuple containing the id of the user deleted and the status code
+    int
+        status code
 
     Notes
     -----
@@ -225,6 +228,53 @@ def delete_user(db: Database, user_id: str, password: str) -> tuple[str, int]:
     """
     try:
         db.delete_one({"_id": user_id})
-        return user_id, 200
+        return 200
     except Exception as e:
-        return e, 500
+        print(e, file=sys.stderr)
+        return 500
+
+
+def update_user_encryption_key(users_db: Database, user_id: str, key: str) -> int:
+    """updates the user's encryption key in the database
+
+    Parameters
+    ----------
+    users_db : Database
+        database to update user in
+    user_id : str
+        id of user to update
+    key : str
+        encryption key to update user with
+
+    Returns
+    -------
+    int
+        0 if successful, 1 if not
+    """
+    try:
+        users_db.update_one({"_id": user_id}, {"$set": {"publicKey": key}})
+        return 0
+    except Exception as e:
+        return 1
+
+
+def get_public_key(users_db: Database, user_id: str) -> str:
+    """gets the user's encryption key from the database
+
+    Parameters
+    ----------
+    users_db : Database
+        database to get user from
+    user_id : str
+        id of user to get
+
+    Returns
+    -------
+    str
+        encryption key if successful, empty string if not
+    """
+    try:
+        user = users_db.find_one({"_id": user_id})
+        return user.get("publicKey")
+    except Exception as e:
+        return ""

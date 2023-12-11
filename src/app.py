@@ -12,7 +12,7 @@ from flask import request  # for multiple param input like with appointments
 
 from pymongo.database import Database
 
-from patient_tracker_api import forms, users, db, appointments
+from patient_tracker_api import forms, users, db, appointments, security
 from patient_tracker_api.users import DoctorPatient
 
 ROOT_PATH: Final[Path] = Path(__file__).parent.parent
@@ -64,10 +64,18 @@ def get_user(username: str) -> dict:
     Raises
     ------
     Exception
-        if unsuccessful"""
+        if unsuccessful
+
+    Notes
+    ------
+    caller_id required to send data to properly encrypt and ensure
+    data is not leaked to non-doctors"""
 
     caller_id: str = request.get_json().get("caller_id")
     users_db = db.get_database("users")
+
+    print(caller_id, file=sys.stderr)
+    print(username, file=sys.stderr)
 
     if caller_id is None:
         return "invalid input", 400
@@ -86,27 +94,53 @@ def get_user(username: str) -> dict:
     user_json.pop("password")
     user_json.pop("SSN")
     try:
-        return user_json, status_code
-    except Exception:
-        return f"user {username} not found", 404
+        return (
+            security.encrypt_data(
+                data=user_json,
+                public_key=security.get_public_key(
+                    users.get_public_key(users_db, caller_id)
+                ),
+            ),
+            status_code,
+        )
+    except Exception as exc:
+        return str(exc), 415
 
 
 @app.route("/sign_in", methods=["POST"])
 def sign_in() -> dict:
     """sign in a user with a username and password"""
-    user_password = request.get_json()
+    user_json = request.get_json()
+    print(user_json, file=sys.stderr)
     users_db = db.get_database("users")
-    user, status_code = users.get_user(users_db, user_password.get("username"))
-    if status_code != 200:
-        return user, status_code
-    if (
-        hashlib.sha256(user_password.get("password").encode()).hexdigest()
-        != user.password
+
+    user, status_code = users.get_user(users_db, user_json.get("username"))
+    print(user, file=sys.stderr)
+
+    # update user encryption key
+    if users.update_user_encryption_key(
+        users_db, user_json.get("username"), user_json.get("publicKey")
     ):
+        return "something went wrong with user", 500
+
+    if status_code != 200:
+        return (
+            user,
+            status_code,
+        )
+    if hashlib.sha256(user_json.get("password").encode()).hexdigest() != user.password:
         return "invalid password", 400
     if status_code != 200:
         return "something went wrong with user", status_code
-    return user.__dict__, 200
+    return (
+        {
+            "data": security.encrypt_data(
+                data=json.dumps(user.__dict__),
+                public_key=security.get_public_key(user_json.get("publicKey")),
+            ),
+        },
+        200,
+    )
 
 
 @app.route("/create_user", methods=["POST"])
@@ -163,7 +197,7 @@ def update_user(user_id: str) -> int:
     password = request.json.get("password")
     try:
         # turn update_param into dict through json
-        return user_id, users.update_user(users_db, user_id, password, update_param)
+        return users.update_user(users_db, user_id, password, update_param)
     except Exception:
         return f"user {user_id} not updated", 403
 
@@ -175,10 +209,8 @@ def delete_user(user_id: str) -> int:
     user_password = request.get_json().get("password")
 
     users_db = db.get_database("users")
-    try:
-        return users.delete_user(users_db, user_id, user_password)
-    except Exception:
-        return f"user {user_id} not deleted", 403
+
+    return users.delete_user(users_db, user_id, user_password)
 
 
 @app.route("/create_appointment", methods=["POST"])
@@ -198,9 +230,25 @@ def create_appointment():
     Raises
     ------
     Exception
-        if unsuccessful"""
+        if unsuccessful
 
-    appointment_data = request.get_json()
+    Notes
+    -----
+    structure of appointment data is:
+    ```json
+        {
+            "caller_id": "string",
+            "appointment_data": {
+                "doctor_id": "string",
+                "patient_id": "string",
+                ...
+                }
+        }
+    ```
+    """
+
+    appointment_data: dict[str, str] = request.get_json().get("appointment_data")
+    caller_id: str = request.get_json().get("caller_id")
     if (
         appointment_data.get("doctor_id") is None
         or appointment_data.get("patient_id") is None
@@ -239,12 +287,20 @@ def create_appointment():
         )
 
         appointments.create_appointment(appointments_db, appointment)
-        return appointment.id, 200
+        return (
+            security.encrypt_data(
+                data=appointment.id,
+                public_key=security.get_public_key(
+                    users.get_public_key(users_db, caller_id)
+                ),
+            ),
+            200,
+        )
     except Exception as e:
         return e, 500
 
 
-@app.route("/appointments/<appointment_id>", methods=["GET"])
+@app.route("/appointments/<appointment_id>", methods=["GET", "POST"])
 def get_appointment(appointment_id: str) -> dict:
     """gets appointment from database
 
@@ -261,16 +317,30 @@ def get_appointment(appointment_id: str) -> dict:
     Raises
     ------
     Exception
-        if unsuccessful"""
+        if unsuccessful
+
+    Notes
+    -----
+    caller_id still required in json
+    """
+    caller_id: str = request.get_json().get("caller_id")
     appointments_db = db.get_database("appointments")
     appointment = appointments.get_appointment(appointments_db, appointment_id)
     try:
-        return appointment.__dict__, 200
+        return (
+            security.encrypt_data(
+                data=appointment.__dict__,
+                public_key=security.get_public_key(
+                    users.get_public_key(users_db, caller_id)
+                ),
+            ),
+            200,
+        )
     except Exception:
         return f"appointment {appointment_id} not found", 404
 
 
-@app.route("/<username>/appointments", methods=["GET"])
+@app.route("/<username>/appointments", methods=["GET", "POST"])
 def get_appointments(username: str) -> dict:
     """Get all appointments for user
 
@@ -283,7 +353,12 @@ def get_appointments(username: str) -> dict:
     -------
     dict
         appointments if successful
+
+    Notes
+    -----
+    caller_id still required in json
     """
+    caller_id: str = request.get_json().get("caller_id")
     user_db: Database = db.get_database("users")
     appointments_db: Database = db.get_database("appointments")
 
@@ -298,7 +373,15 @@ def get_appointments(username: str) -> dict:
         )
         appointments_dict.update({appointment_id: appointment.__dict__})
 
-    return appointments_dict
+    return (
+        security.encrypt_data(
+            data=appointments_dict.__dict__,
+            public_key=security.get_public_key(
+                users.get_public_key(users_db, caller_id)
+            ),
+        ),
+        200,
+    )
 
 
 # Creating form

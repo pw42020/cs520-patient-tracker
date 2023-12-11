@@ -28,6 +28,10 @@ class TestGetUsers(unittest.TestCase):
         with open(f"{PATH_TO_ROOT}/assets/default_doctor.json", "r") as f:
             user_json = json.loads(f.read())
 
+        # get public key from assets
+        with open(f"{PATH_TO_ROOT}/assets/public.pem", "r") as f:
+            user_json.update({"publicKey": f.read()})
+
         user_json.update({"_id": str(uuid.uuid4())})  # random username to not conflict
         self.assertEqual(
             self.app.post(
@@ -45,6 +49,7 @@ class TestGetUsers(unittest.TestCase):
                     {
                         "username": user_json["_id"],
                         "password": user_json["password"],
+                        "publicKey": user_json["publicKey"],
                     }
                 ),
                 content_type="application/json",
@@ -60,6 +65,10 @@ class TestGetUsers(unittest.TestCase):
 
         with open(f"{PATH_TO_ROOT}/assets/default_patient.json", "r") as f:
             patient_json = json.loads(f.read())
+
+        # get public key from assets
+        with open(f"{PATH_TO_ROOT}/assets/public.pem", "r") as f:
+            publicKey: str = f.read()
 
         doctor_json.update(
             {"_id": str(uuid.uuid4())}

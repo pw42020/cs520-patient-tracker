@@ -27,11 +27,11 @@ class Appointment:
         summary of appointment
     """
 
-    _id: str = str(uuid.uuid4())
     doctor_id: str
     patient_id: str
     date: str
     summary: str
+    _id: str = str(uuid.uuid4())
 
 
 def create_appointment(
