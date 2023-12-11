@@ -9,6 +9,8 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 
+from patient_tracker_api.forms import form, create_form, get_form, delete_form
+
 # required to get all code in src/ folder
 DATETIME_FORMAT = "%Y%m%dT%H%M%SZ"
 PATH_TO_ROOT: Path = Path(__file__).parent.parent
@@ -222,6 +224,82 @@ class TestPatientTrackerAPI(unittest.TestCase):
 
         removeIds.append(patient_json["_id"])
         removeIds.append(doctor_json["_id"])
+
+# Need to set them up in the test class
+    def test_create_form(self) -> None:
+        """Test the create_form function."""
+        # Create a form instance
+        test_form = form(
+            id="test_id",
+            patient_id="test_patient_id",
+            patientName="Test Patient",
+            patientDOB="2000-01-01",
+            briefClinicalHistory="Test clinical history",
+            diagnosis="Test diagnosis",
+            studyDate="2023-01-01",
+        )
+
+        # Mock the insert_one method to return a success
+        self.form_db.insert_one.return_value.inserted_id = "test_id"
+
+        # Call the create_form function
+        result = create_form(self.form_db, test_form)
+
+        # Assertions
+        self.assertEqual(result, "test_id")
+        self.form_db.insert_one.assert_called_once_with(test_form.to_json())
+
+
+
+    def test_get_form(self) -> None:
+        """Test the get_form function."""
+        # Mock the find_one method to return a test form JSON
+        self.form_db.find_one.return_value = {
+            "_id": "test_id",
+            "patient_id": "test_patient_id",
+            "patientName": "Test Patient",
+            "patientDOB": "2000-01-01",
+            "briefClinicalHistory": "Test clinical history",
+            "diagnosis": "Test diagnosis",
+            "studyDate": "2023-01-01",
+        }
+
+        # Call the get_form function
+        result = get_form(self.form_db, "test_id")
+
+        # Assertions
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, form)
+        self.assertEqual(result.id, "test_id")
+        self.assertEqual(result.patient_id, "test_patient_id")
+
+    def test_delete_form(self) -> None:
+        """Test the delete_form function."""
+        # Mock the find_one method to return a test form JSON
+        self.form_db.find_one.return_value = {
+            "_id": "test_id",
+            "patient_id": "test_patient_id",
+            "patientName": "Test Patient",
+            "patientDOB": "2000-01-01",
+            "briefClinicalHistory": "Test clinical history",
+            "diagnosis": "Test diagnosis",
+            "studyDate": "2023-01-01",
+        }
+
+        # Mock the delete_one method to return a success
+        self.form_db.delete_one.return_value.deleted_count = 1
+
+        # Call the delete_form function
+        result = delete_form(self.users_db, self.form_db, "test_id", "test_patient_id")
+
+        # Assertions
+        self.assertEqual(result, {"test_id", "200"})
+        self.form_db.delete_one.assert_called_once_with({"_id": "test_id"})
+        self.users_db.update_one.assert_called_once_with(
+            {"_id": "test_patient_id"},
+            {"$pull": {"formIds": "test_id"}},
+        )
+
 
 
 if __name__ == "__main__":
