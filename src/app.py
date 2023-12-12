@@ -220,7 +220,8 @@ def create_appointment():
         # update user and doctor appointmentIds
         doctor, status_code = users.get_user(users_db, appointment.doctor_id)
         if status_code != 200:
-            raise Exception("doctor not found")
+            assert isinstance(doctor, str)
+            return doctor, status_code  # returns string of doctor
         doctor.appointmentIds.append(appointment._id)
         users.update_user(
             db=users_db,
@@ -231,7 +232,8 @@ def create_appointment():
 
         patient, status_code = users.get_user(users_db, appointment.patient_id)
         if status_code != 200:
-            raise Exception("patient not found")
+            assert isinstance(patient, str)
+            return patient, status_code  # returns string of patient
         patient.appointmentIds.append(appointment._id)
         users.update_user(
             db=users_db,
@@ -239,10 +241,10 @@ def create_appointment():
             password=None,
             update_param={"appointmentIds": patient.appointmentIds},
         )
-
         appointments.create_appointment(appointments_db, appointment)
         return appointment._id, 200
     except Exception as e:
+        print(e, file=sys.stderr)
         return e, 500
 
 
@@ -341,7 +343,8 @@ def create_form():
     try:
         patient, status_code = users.get_user(users_db, form.patient_id)
         if status_code != 200:
-            raise Exception("patient not found")
+            assert isinstance(patient, str)
+            return patient, status_code
         patient.formIds.append(form.id)
         users.update_user(
             db=users_db,

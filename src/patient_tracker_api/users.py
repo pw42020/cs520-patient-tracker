@@ -41,7 +41,6 @@ class User:
     imageUrl: str
     appointmentIds: list[str]
     availableSlots: list[str]
-    publicKey: str
 
 
 def get_user(db: Database, username: str) -> tuple[User | str, int]:
