@@ -9,7 +9,6 @@ import uuid
 import pymongo
 
 
-
 @dataclass
 class form:
     id: str
@@ -47,7 +46,6 @@ class form:
                 briefClinicalHistory=data.get("briefClinicalHistory"),
                 diagnosis=data.get("diagnosis"),
                 studyDate=data.get("studyDate"),
-                
             )
         else:
             return cls(
@@ -79,9 +77,7 @@ class form:
         }
 
 
-def create_form(
-    form_db: pymongo.databases.database, form: form
-) -> str:
+def create_form(form_db: pymongo.databases.database, form: form) -> str:
     """creates form in database
 
     Parameters
@@ -110,9 +106,7 @@ def create_form(
         return e, 500
 
 
-def get_form(
-    form_db: pymongo.databases.database, form_id: str
-) -> form | None:
+def get_form(form_db: pymongo.databases.database, form_id: str) -> form | None:
     """gets form from database
 
     Parameters
@@ -137,9 +131,12 @@ def get_form(
     return form.from_json(form_json) if form_json else None
 
 
-
-def delete_form(usersdb: pymongo.databases.database, formsdb: pymongo.databases.database,
-                form_id: str, patient_id: str) -> str:
+def delete_form(
+    usersdb: pymongo.databases.database,
+    formsdb: pymongo.databases.database,
+    form_id: str,
+    patient_id: str,
+) -> str:
     """deletes the form in the database
 
     Parameters
@@ -159,19 +156,19 @@ def delete_form(usersdb: pymongo.databases.database, formsdb: pymongo.databases.
         message if successful
     """
     try:
-        existing_form = formsdb.find_one({'_id': form_id})
-    
-        update_criteria = {'_id': patient_id}
-        update_query = {'$pull': {'formIds': form_id}} 
-            
+        existing_form = formsdb.find_one({"_id": form_id})
+
+        update_criteria = {"_id": patient_id}
+        update_query = {"$pull": {"formIds": form_id}}
+
         print(update_query)
         if existing_form:
-            formsdb.delete_one({'_id': (form_id)})
+            formsdb.delete_one({"_id": (form_id)})
             usersdb.update_one(update_criteria, update_query)
             print("Form deleted successfully")
         else:
             print("Form not found")
-            
+
         return {form_id, "200"}
     except Exception as e:
         print(f"Error: {e}")

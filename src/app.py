@@ -74,8 +74,10 @@ def get_user(username: str) -> dict:
 
     user, status_code = users.get_user(users_db, caller_id)
 
+    print(user, file=sys.stderr)
+
     if status_code != 200:
-        return "something went wrong with user", status_code
+        return user, status_code
 
     if user.doctorPatient == 1:
         return f"User {username} not found", 404
@@ -219,7 +221,7 @@ def create_appointment():
         doctor, status_code = users.get_user(users_db, appointment.doctor_id)
         if status_code != 200:
             raise Exception("doctor not found")
-        doctor.appointmentIds.append(appointment.id)
+        doctor.appointmentIds.append(appointment._id)
         users.update_user(
             db=users_db,
             user_id=appointment.doctor_id,
@@ -230,7 +232,7 @@ def create_appointment():
         patient, status_code = users.get_user(users_db, appointment.patient_id)
         if status_code != 200:
             raise Exception("patient not found")
-        patient.appointmentIds.append(appointment.id)
+        patient.appointmentIds.append(appointment._id)
         users.update_user(
             db=users_db,
             user_id=appointment.patient_id,
@@ -239,7 +241,7 @@ def create_appointment():
         )
 
         appointments.create_appointment(appointments_db, appointment)
-        return appointment.id, 200
+        return appointment._id, 200
     except Exception as e:
         return e, 500
 
@@ -478,8 +480,10 @@ def search_doctors(name: str) -> dict:
 
 if __name__ == "__main__":
     # add default_patient.json to database
-    with open(f"{ROOT_PATH}/assets/default_doctor.json", "r") as f:
-        user_json = json.loads(f.read())
+    # with open(f"{ROOT_PATH}/assets/default_doctor.json", "r") as f:
+    #     user_json = json.loads(f.read())
 
-    users_db = db.get_database("users")
-    users.create_user(users_db, user_json)
+    # users_db = db.get_database("users")
+    # users.create_user(users_db, user_json)
+
+    app.run(ssl_context=(f"{ROOT_PATH}/assets/cert.pem", f"{ROOT_PATH}/assets/key.pem"))

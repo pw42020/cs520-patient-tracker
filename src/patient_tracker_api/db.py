@@ -26,7 +26,9 @@ def ping_database() -> str:
     InternalServerError
         if unsuccessful"""
     try:
-        client = MongoClient(os.getenv("MONGODB_URI"), server_api=ServerApi("1"))
+        client = MongoClient(
+            os.getenv("MONGODB_URI"), tls=True, server_api=ServerApi("1")
+        )
         client.admin.command("ping")
         return "Pinged your deployment. You successfully connected to MongoDB!"
     except Exception as e:
@@ -50,7 +52,7 @@ def get_database(db_name: str) -> MongoClient:
     ------
     Exception
         if unsuccessful"""
-    client = MongoClient(os.getenv("MONGODB_URI"))
+    client = MongoClient(os.getenv("MONGODB_URI"), tls=True)
 
     collection = client.Cluster0  # hard-coded at the moment
 

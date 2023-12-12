@@ -27,11 +27,11 @@ class Appointment:
         summary of appointment
     """
 
-    _id: str = str(uuid.uuid4())
     doctor_id: str
     patient_id: str
     date: str
     summary: str
+    _id: str = str(uuid.uuid4())
 
 
 def create_appointment(
@@ -58,8 +58,8 @@ def create_appointment(
     """
     try:
         # add to appointments database
-        appointments_db.insert_one(appointment.to_json())
-        return appointment.id
+        appointments_db.insert_one(appointment.__dict__)
+        return appointment._id
     except Exception as e:
         print(e, file=sys.stderr)
         return e, 500
