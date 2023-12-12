@@ -36,24 +36,9 @@ async function signIn(username, password, publicKey, privateKey) {
  */
 async function main() {
     console.log("Hello World!");
-    // generates a public and private key pair
-    // for use in the database.
-    generateKeyPair('rsa', {
-        modulusLength: 1024,
-        publicKeyEncoding: {
-            type: 'pkcs1',
-            format: 'pem'
-        },
-        privateKeyEncoding: {
-            type: 'pkcs1',
-            format: 'pem',
-        }
-    }, async (err, publicKey, privateKey) => {
-        // Handle errors and use the generated key pair.
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // allowing self-signed certificates to still come through
-        let response = await signIn("anonymousDoctor", "password", publicKey);
-        console.log(response);
-    });
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // allowing self-signed certificates to still come through
+    let response = await signIn("anonymousDoctor", "password", publicKey);
+    console.log(response);
 }
 
 main();
