@@ -219,6 +219,17 @@ def create_appointment():
     try:
         # update user and doctor appointmentIds
         doctor, status_code = users.get_user(users_db, appointment.doctor_id)
+
+        # removing date from available slots
+        doctor.availableSlots.remove(appointment.date)
+        # updating availableSlots to exclude appointment date
+        users.update_user(
+            db=users_db,
+            user_id=appointment.doctor_id,
+            password=None,
+            update_param={"availableSlots": doctor.availableSlots},
+        )
+
         if status_code != 200:
             assert isinstance(doctor, str)
             return doctor, status_code  # returns string of doctor
@@ -243,9 +254,11 @@ def create_appointment():
         )
         appointments.create_appointment(appointments_db, appointment)
         return appointment._id, 200
+    except ValueError as e:
+        return str(e), 404
     except Exception as e:
         print(e, file=sys.stderr)
-        return e, 500
+        return str(e), 500
 
 
 @app.route("/appointments/<appointment_id>", methods=["GET"])
@@ -356,7 +369,7 @@ def create_form():
         forms.create_form(forms_db, form)
         return form.id, 200
     except Exception as e:
-        return e, 500
+        return str(e), 500
 
 
 @app.route("/forms/<form_id>", methods=["GET"])
@@ -432,7 +445,7 @@ def delete_form():
         return message, 200
     except Exception as e:
         print(e)
-        return e, 500
+        return str(e), 500
 
 
 @app.route("/<name>/search", methods=["GET"])

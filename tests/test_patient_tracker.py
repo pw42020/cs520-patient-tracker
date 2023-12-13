@@ -12,10 +12,12 @@ from datetime import datetime
 from patient_tracker_api.forms import form, create_form, get_form, delete_form
 
 # required to get all code in src/ folder
-DATETIME_FORMAT = "%Y%m%dT%H%M%SZ"
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 PATH_TO_ROOT: Path = Path(__file__).parent.parent
 PATH_TO_APP: Path = PATH_TO_ROOT / "src"
 sys.path.append(str(PATH_TO_APP))
+
+DATETIME_TO_ADD: str = "2023-12-13T12:26:43Z"
 
 from app import app
 
@@ -146,7 +148,7 @@ class TestPatientTrackerAPI(unittest.TestCase):
                 {
                     "doctor_id": doctor_json["_id"],
                     "patient_id": patient_json["_id"],
-                    "date": datetime.now().strftime(DATETIME_FORMAT),
+                    "date": DATETIME_TO_ADD,
                     "summary": "test",
                 }
             ),
@@ -156,6 +158,25 @@ class TestPatientTrackerAPI(unittest.TestCase):
         self.assertEqual(
             ret_status.status_code,
             http.HTTPStatus.OK,
+        )
+
+        # checking while doctor now no longer has the datetime to add
+        ret_status = self.app.post(
+            f"/create_appointment",
+            data=json.dumps(
+                {
+                    "doctor_id": doctor_json["_id"],
+                    "patient_id": patient_json["_id"],
+                    "date": DATETIME_TO_ADD,
+                    "summary": "test",
+                }
+            ),
+            content_type="application/json",
+        )
+        # print(ret_status.data.decode(), file=sys.stderr)
+        self.assertEqual(
+            ret_status.status_code,
+            http.HTTPStatus.NOT_FOUND,
         )
 
     def test_get_appointment(self) -> None:
@@ -193,7 +214,7 @@ class TestPatientTrackerAPI(unittest.TestCase):
                 {
                     "doctor_id": doctor_json["_id"],
                     "patient_id": patient_json["_id"],
-                    "date": datetime.now().strftime(DATETIME_FORMAT),
+                    "date": DATETIME_TO_ADD,
                     "summary": "test",
                 }
             ),
