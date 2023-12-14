@@ -21,7 +21,7 @@ jobs:
         image: mongo:${{ matrix.mongodb-version }}
         ports:
           - 42069:42069
-        options: --replicaset test-rs
+        # options: --replicaset test-rs
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
