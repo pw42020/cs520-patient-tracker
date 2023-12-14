@@ -71,7 +71,7 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
             return user, 200
     except TypeError as e:
         """if something internal went wrong in the code"""
-        return e, 500
+        return e, 400
     except Exception as e:
         return e, 404
 
