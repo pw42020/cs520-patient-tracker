@@ -448,6 +448,39 @@ def delete_form():
         return str(e), 500
 
 
+@app("/exists/<username>", methods=["GET"])
+def exists(username: str) -> dict:
+    """gets user from database
+
+    Parameters
+    ----------
+    username : str
+        username of user to grab
+
+    Returns
+    -------
+    dict
+        user if successful
+
+    Raises
+    ------
+    Exception
+        if unsuccessful"""
+
+    users_db = db.get_database("users")
+
+    user, status_code = users.get_user(users_db, username)
+
+    if status_code != 200:
+        assert isinstance(user, str)
+        return user, status_code
+
+    try:
+        return user._id, status_code
+    except Exception:
+        return f"user {username} not found", 404
+
+
 @app.route("/<name>/search", methods=["GET"])
 def search_users(name: str) -> dict:
     """Get all forms for user
