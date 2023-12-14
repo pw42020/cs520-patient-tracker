@@ -6,10 +6,8 @@ import json
 import unittest
 import uuid
 from pathlib import Path
-from datetime import datetime
 
 # required to get all code in src/ folder
-DATETIME_FORMAT = "%Y%m%dT%H%M%SZ"
 PATH_TO_ROOT: Path = Path(__file__).parent.parent
 PATH_TO_APP: Path = PATH_TO_ROOT / "src"
 sys.path.append(str(PATH_TO_APP))
