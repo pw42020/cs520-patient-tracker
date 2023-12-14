@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  MONGODB_URI: mongodb://localhost:42069
+  MONGODB_URI: mongodb://localhost:27017
 
 jobs:
   test:
@@ -20,7 +20,7 @@ jobs:
       mongo:
         image: mongo:${{ matrix.mongodb-version }}
         ports:
-          - 42069:42069
+          - 27017:27017
         options: >-
           --health-cmd mongo
           --health-interval 10s
