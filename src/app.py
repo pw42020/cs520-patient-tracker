@@ -448,7 +448,7 @@ def delete_form():
         return str(e), 500
 
 
-@app("/exists/<username>", methods=["GET"])
+@app.route("/exists/<username>", methods=["GET"])
 def exists(username: str) -> dict:
     """gets user from database
 
