@@ -9,22 +9,21 @@ env:
   MONGODB_URI: mongodb://localhost:42069
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         mongodb-version: [ '4.4.0' ]
         python-version: [ "3.11" ]
-
+    name: Test on Python ${{ matrix.python-version }} and MongoDB ${{ matrix.mongodb-version }}
+    services:
+      mongo:
+        image: mongo:${{ matrix.mongodb-version }}
+        ports:
+          - 42069:42069
+        options: --replicaset test-rs
     steps:
       - uses: actions/checkout@v3
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
-        with:
-          mongodb-version: ${{ matrix.mongodb-version }}
-          mongodb-replica-set: test-rs
-          mongodb-port: 42069
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -38,8 +37,6 @@ jobs:
       - name: Run unit tests
         run: |
           python -m unittest
-        env:
-          CI: true
       # all under is from https://github.com/tj-actions/coverage-badge-py
       # - name: Coverage Badge
       #   uses: tj-actions/coverage-badge-py@v2
