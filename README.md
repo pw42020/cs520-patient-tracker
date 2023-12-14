@@ -10,8 +10,6 @@
 ## Patient Tracker API
 Created by Matthew Lips, Dhruv Maheshwari, Navid Tabrizi, Patrick Walsh
 
-Documentation for the API can be found [here](https://pw42020.github.io/cs520-patient-tracker/).
-
 ### Installation and Usage
 First, install the repository via
 
