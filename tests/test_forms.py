@@ -62,5 +62,50 @@ class TestFormsAPI(unittest.TestCase):
         )
 
 
+
+    def test_get_form(self) -> None:
+        """test ability to get specific created form"""
+
+        with open(f"{PATH_TO_ROOT}/assets/default_patient.json", "r") as f:
+            patient_json = json.loads(f.read())
+
+        patient_json.update({"_id": str(uuid.uuid4())})
+        self.assertEqual(
+            self.app.post(
+                f"/create_user",
+                data=json.dumps(patient_json),
+                content_type="application/json",
+            ).status_code,
+            http.HTTPStatus.OK,
+        )
+
+
+        return_val = self.app.post(
+            f"/create_form",
+            data=json.dumps(
+                {
+                    "patient_id": patient_json["_id"],
+                    "diagnosis": "anonymous_diagnosis",
+                }
+            ),
+            content_type="application/json",
+        )
+        
+        
+
+        self.assertEqual(
+            return_val.status_code,
+            http.HTTPStatus.OK,
+        )
+
+        # test get appointment for
+        self.assertEqual(
+            self.app.get(f"/{patient_json['_id']}/forms").status_code,
+            http.HTTPStatus.OK,
+        )
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
