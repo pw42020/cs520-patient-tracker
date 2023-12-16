@@ -3,7 +3,8 @@ name: Run unit tests
 on: [push]
 
 env:
-  MONGODB_URI: mongodb://localhost:27018
+  MONGODB_URI: mongodb://localhost:27017
+  CI: true
 
 jobs:
   test:
