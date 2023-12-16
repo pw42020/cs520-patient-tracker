@@ -1,9 +1,6 @@
-name: CI
+name: Run unit tests
 
-on:
-  push:
-    branches:    
-      - main
+on: [push]
 
 env:
   MONGODB_URI: mongodb://localhost:27017/
@@ -16,53 +13,48 @@ jobs:
         mongodb-version: [ '4.4.0' ]
         python-version: [ "3.11" ]
     name: Test on Python ${{ matrix.python-version }} and MongoDB ${{ matrix.mongodb-version }}
-    services:
-      mongo:
-        image: mongo:${{ matrix.mongodb-version }}
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd mongo
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          # cache
-          cache: 'pip'
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-      - name: Run unit tests
-        run: |
-          python -m unittest
-      # all under is from https://github.com/tj-actions/coverage-badge-py
-      # - name: Coverage Badge
-      #   uses: tj-actions/coverage-badge-py@v2
-      
-      # - name: Verify Changed files
-      #   uses: tj-actions/verify-changed-files@v16
-      #   id: verify-changed-files
-      #   with:
-      #     files: coverage.svg
+    - name: Git checkout
+      uses: actions/checkout@v3
 
-      # - name: Commit files
-      #   if: steps.verify-changed-files.outputs.files_changed == 'true'
-      #   run: |
-      #     git config --local user.email "github-actions[bot]@users.noreply.github.com"
-      #     git config --local user.name "github-actions[bot]"
-      #     git add coverage.svg
-      #     git commit -m "Updated coverage.svg"
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        # cache
+        cache: 'pip'
 
-      # - name: Push changes
-      #   if: steps.verify-changed-files.outputs.files_changed == 'true'
-      #   uses: ad-m/github-push-action@master
-      #   with:
-      #     github_token: ${{ secrets.github_token }}
-      #     branch: ${{ github.ref }}
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.6.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+
+    - run: python -m pip install --upgrade pip
+    - run: python -m pip install -r requirements.txt
+    - run: coverage run -m unittest
+
+    # all under is from https://github.com/tj-actions/coverage-badge-py
+    - name: Coverage Badge
+      uses: tj-actions/coverage-badge-py@v2
+    
+    - name: Verify Changed files
+      uses: tj-actions/verify-changed-files@v16
+      id: verify-changed-files
+      with:
+        files: coverage.svg
+
+    - name: Commit files
+      if: steps.verify-changed-files.outputs.files_changed == 'true'
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add coverage.svg
+        git commit -m "Updated coverage.svg"
+
+    - name: Push changes
+      if: steps.verify-changed-files.outputs.files_changed == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.github_token }}
+        branch: ${{ github.ref }}
         
