@@ -71,9 +71,9 @@ def get_user(db: Database, username: str) -> tuple[User | str, int]:
             return user, 200
     except TypeError as e:
         """if something internal went wrong in the code"""
-        return e, 400
+        return str(e), 400
     except Exception as e:
-        return e, 404
+        return str(e), 404
 
 
 def get_profile(db: Database, name: str) -> tuple[list, int]:
@@ -100,9 +100,9 @@ def get_profile(db: Database, name: str) -> tuple[list, int]:
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
-        return e, 500
+        return str(e), 500
     except Exception as e:
-        return e, 404
+        return str(e), 404
 
 
 def get_doctors(db: Database, name: str) -> tuple[list, int]:
@@ -131,9 +131,9 @@ def get_doctors(db: Database, name: str) -> tuple[list, int]:
         return list(users), 200
     except TypeError as e:
         """if something internal went wrong in the code"""
-        return e, 500
+        return str(e), 500
     except Exception as e:
-        return e, 404
+        return str(e), 404
 
 
 def create_user(db: Database, user: dict) -> tuple[str, int]:
@@ -169,7 +169,7 @@ def create_user(db: Database, user: dict) -> tuple[str, int]:
         db.insert_one(user)
         return user.get("_id"), 200
     except Exception as e:
-        return e, 500
+        return str(e), 500
 
 
 def update_user(db: Database, user_id: str, password: str, update_param: dict) -> int:
@@ -227,4 +227,4 @@ def delete_user(db: Database, user_id: str, password: str) -> tuple[str, int]:
         db.delete_one({"_id": user_id})
         return user_id, 200
     except Exception as e:
-        return e, 500
+        return str(e), 500

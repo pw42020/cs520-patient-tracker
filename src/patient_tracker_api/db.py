@@ -4,6 +4,8 @@ various database functions for program to use
 that are more general compared to ones in specific .py files"""
 
 import os
+from typing import Optional
+
 from dotenv import load_dotenv
 import pymongo
 from pymongo import MongoClient
@@ -26,9 +28,12 @@ def ping_database() -> str:
     InternalServerError
         if unsuccessful"""
     try:
-        client = MongoClient(
-            os.getenv("MONGODB_URI"), tls=True, server_api=ServerApi("1")
-        )
+        client: Optional[MongoClient] = None
+        if os.getenv("CI"):
+            client = MongoClient("127.0.0.1", 27017)
+        else:
+            client = MongoClient(os.getenv("MONGODB_URI"), tls=True)
+
         client.admin.command("ping")
         return "Pinged your deployment. You successfully connected to MongoDB!"
     except Exception as e:
@@ -52,7 +57,11 @@ def get_database(db_name: str) -> MongoClient:
     ------
     Exception
         if unsuccessful"""
-    client = MongoClient(os.getenv("MONGODB_URI"), tls=True)
+    client: Optional[MongoClient] = None
+    if os.getenv("CI"):
+        client = MongoClient("127.0.0.1", 27017)
+    else:
+        client = MongoClient(os.getenv("MONGODB_URI"), tls=True)
 
     collection = client.Cluster0  # hard-coded at the moment
 

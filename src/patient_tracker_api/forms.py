@@ -103,7 +103,7 @@ def create_form(form_db: pymongo.databases.database, form: form) -> str:
         return form.id
     except Exception as e:
         print(e, file=sys.stderr)
-        return e, 500
+        return str(e), 500
 
 
 def get_form(form_db: pymongo.databases.database, form_id: str) -> form | None:

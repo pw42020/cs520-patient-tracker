@@ -62,7 +62,7 @@ def create_appointment(
         return appointment._id
     except Exception as e:
         print(e, file=sys.stderr)
-        return e, 500
+        return str(e), 500
 
 
 def get_appointment(
