@@ -1,6 +1,6 @@
 <p align="center">
 <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54">
-<img src="https://github.com/pw42020/cs520-repo/actions/workflows/actions.yml/badge.svg">
+<img src="https://github.com/pw42020/cs520-patient-tracker/actions/workflows/actions.yml/badge.svg">
 <img src="./coverage.svg">
 <img src="https://img.shields.io/badge/code%20style-black-000000.svg">
 <img src="https://img.shields.io/badge/linting%20-pylint-FFD700.svg">
